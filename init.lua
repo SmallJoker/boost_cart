@@ -6,7 +6,15 @@
 
 boost_cart = {}
 boost_cart.modpath = minetest.get_modpath("boost_cart")
-boost_cart.speed_max = 12
+boost_cart.speed_max = 9
+
+function vector.floor(v)
+	return {
+		x = math.floor(v.x),
+		y = math.floor(v.y),
+		z = math.floor(v.z)
+	}
+end
 
 dofile(boost_cart.modpath.."/functions.lua")
 dofile(boost_cart.modpath.."/rails.lua")
@@ -64,7 +72,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	
 	local vel = self.velocity
 	if puncher:get_player_name() == self.driver then
-		if math.abs(vel.x) > 7 or math.abs(vel.z) > 7 then
+		if math.abs(vel.x) + math.abs(vel.z) > 6 then
 			return
 		end
 	end
@@ -96,14 +104,6 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	self.punch = true
 end
 
-function vector.floor(v)
-	return {
-		x = math.floor(v.x),
-		y = math.floor(v.y),
-		z = math.floor(v.z)
-	}
-end
-
 function boost_cart.cart:on_step(dtime)
 	local vel = self.object:getvelocity()
 	if self.punch then
@@ -126,7 +126,6 @@ function boost_cart.cart:on_step(dtime)
 		z = boost_cart:get_sign(vel.z)
 	}
 	local dir = boost_cart:get_rail_direction(pos, cart_dir)
-	local real_punch = self.punch
 	if vector.equals(dir, {x=0, y=0, z=0}) then
 		vel = {x=0, y=0, z=0}
 		self.object:setacceleration({x=0, y=0, z=0})
@@ -146,14 +145,14 @@ function boost_cart.cart:on_step(dtime)
 			self.punch = true
 		end
 		-- Up, down?
+		vel.y = dir.y * (math.abs(vel.x) + math.abs(vel.z))
 		if dir.y ~= self.old_dir.y then
-			vel.y = dir.y * (math.abs(vel.x) + math.abs(vel.z))
-			pos.y = math.floor(pos.y + 0.5)
+			pos = vector.round(pos)
 			self.punch = true
 		end
 		
 		-- Slow down or speed up..
-		local acc = (dir.y * -1) - 0.6
+		local acc = (dir.y * -1.4) - 0.4
 		local new_acc = {
 			x = dir.x * acc, 
 			y = dir.y * acc, 
@@ -161,7 +160,7 @@ function boost_cart.cart:on_step(dtime)
 		}
 		
 		for _,v in ipairs({"x","y","z"}) do
-			if math.abs(vel[v]) < math.abs(new_acc[v]) then
+			if math.abs(vel[v]) < math.abs(new_acc[v] * 1.4) then
 				vel[v] = 0
 				new_acc[v] = 0
 				self.punch = true
