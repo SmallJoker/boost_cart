@@ -6,7 +6,7 @@
 
 boost_cart = {}
 boost_cart.modpath = minetest.get_modpath("boost_cart")
-boost_cart.speed_max = 8
+boost_cart.speed_max = 12
 
 dofile(boost_cart.modpath.."/functions.lua")
 dofile(boost_cart.modpath.."/rails.lua")
@@ -64,7 +64,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	
 	local vel = self.velocity
 	if puncher:get_player_name() == self.driver then
-		if math.abs(vel.x) > 2 or math.abs(vel.z) > 2 then
+		if math.abs(vel.x) > 7 or math.abs(vel.z) > 7 then
 			return
 		end
 	end
@@ -88,12 +88,20 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	end
 	local dir = boost_cart:get_rail_direction(self.object:getpos(), cart_dir)
 	
-	local f = 3 * (time_from_last_punch / tool_capabilities.full_punch_interval)
+	local f = 4 * (time_from_last_punch / tool_capabilities.full_punch_interval)
 	vel.x = dir.x * f
 	vel.z = dir.y * f
 	vel.z = dir.z * f
 	self.velocity = vel
 	self.punch = true
+end
+
+function vector.floor(v)
+	return {
+		x = math.floor(v.x),
+		y = math.floor(v.y),
+		z = math.floor(v.z)
+	}
 end
 
 function boost_cart.cart:on_step(dtime)
@@ -106,7 +114,7 @@ function boost_cart.cart:on_step(dtime)
 	end
 	
 	local pos = self.object:getpos()
-	local fpos, fold_pos = vector.round(pos), vector.round(self.old_pos)
+	local fpos, fold_pos = vector.floor(pos), vector.floor(self.old_pos)
 	if vector.equals(fpos, fold_pos) and not self.punch then
 		return
 	end
@@ -118,6 +126,7 @@ function boost_cart.cart:on_step(dtime)
 		z = boost_cart:get_sign(vel.z)
 	}
 	local dir = boost_cart:get_rail_direction(pos, cart_dir)
+	local real_punch = self.punch
 	if vector.equals(dir, {x=0, y=0, z=0}) then
 		vel = {x=0, y=0, z=0}
 		self.object:setacceleration({x=0, y=0, z=0})
@@ -144,12 +153,21 @@ function boost_cart.cart:on_step(dtime)
 		end
 		
 		-- Slow down or speed up..
-		local acc = -2 * dir.y - 0.4
-		self.object:setacceleration({
+		local acc = (dir.y * -1) - 0.6
+		local new_acc = {
 			x = dir.x * acc, 
-			y = dir.y * (math.abs(dir.x) + math.abs(dir.z)) * acc, 
+			y = dir.y * acc, 
 			z = dir.z * acc
-		})
+		}
+		
+		for _,v in ipairs({"x","y","z"}) do
+			if math.abs(vel[v]) < math.abs(new_acc[v]) then
+				vel[v] = 0
+				new_acc[v] = 0
+				self.punch = true
+			end
+		end
+		self.object:setacceleration(new_acc)
 	end
 	
 	self.old_dir = vector.new(dir)
