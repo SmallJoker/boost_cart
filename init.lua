@@ -128,12 +128,11 @@ function boost_cart.cart:on_step(dtime)
 			z = math.abs(diff.z)
 		}
 		
-		print(minetest.pos_to_string(diff))
 		if diff.x > math.abs(self.old_dir.x) or 
 				diff.y > math.abs(self.old_dir.y) or 
 				diff.z > math.abs(self.old_dir.z) then
 			pos = vector.new(expected_pos)
-			minetest.log("action", "Cart moving too fast at "..minetest.pos_to_string(pos))
+			--minetest.log("action", "Cart moving too fast at "..minetest.pos_to_string(pos))
 			self.punch = true
 		end
 	end
