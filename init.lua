@@ -95,7 +95,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	end
 	local dir = boost_cart:get_rail_direction(self.object:getpos(), cart_dir)
 	
-	local f = 3 * (time_from_last_punch / tool_capabilities.full_punch_interval)
+	local f = 4 * (time_from_last_punch / tool_capabilities.full_punch_interval)
 	vel.x = dir.x * f
 	vel.y = dir.y * f
 	vel.z = dir.z * f
@@ -109,31 +109,31 @@ function boost_cart.cart:on_step(dtime)
 	if self.punch then
 		vel = vector.add(vel, self.velocity)
 		self.velocity = {x=0, y=0, z=0}
-		for _,v in ipairs({"x","y","z"}) do
-			if math.abs(vel[v]) > boost_cart.speed_max then
-				vel[v] = boost_cart:get_sign(vel[v]) * boost_cart.speed_max
-			end
-		end
 	elseif vector.equals(vel, {x=0, y=0, z=0}) then
 		return
 	end
 	
 	local pos = self.object:getpos()
-	local flo_pos = vector.floor(pos)
 	if self.old_pos and not self.punch then
-		if vector.equals(flo_pos, self.old_pos) then
+		local flo_pos = vector.floor(pos)
+		local flo_old = vector.floor(self.old_pos)
+		if vector.equals(flo_pos, flo_old) then
 			return
 		end
 		local expected_pos = vector.add(self.old_pos, self.old_dir)
-		local diff = vector.subtract(pos, expected_pos)
+		local diff = vector.subtract(expected_pos, pos)
 		diff = {
 			x = math.abs(diff.x),
 			y = math.abs(diff.y),
 			z = math.abs(diff.z)
 		}
 		
-		if diff.x > 1 or diff.y > 1 or diff.z > 1 then
-			pos = vector.new(self.old_pos)
+		print(minetest.pos_to_string(diff))
+		if diff.x > math.abs(self.old_dir.x) or 
+				diff.y > math.abs(self.old_dir.y) or 
+				diff.z > math.abs(self.old_dir.z) then
+			pos = vector.new(expected_pos)
+			minetest.log("action", "Cart moving too fast at "..minetest.pos_to_string(pos))
 			self.punch = true
 		end
 	end
@@ -181,7 +181,7 @@ function boost_cart.cart:on_step(dtime)
 		self.object:setacceleration(new_acc)
 	end
 	
-	self.old_pos = vector.floor(pos)
+	self.old_pos = vector.new(pos)
 	self.old_dir = vector.new(dir)
 	
 	-- Limits
