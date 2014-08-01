@@ -98,7 +98,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	
 	local f = 3 * (time_from_last_punch / tool_capabilities.full_punch_interval)
 	vel.x = dir.x * f
-	vel.z = dir.y * f
+	vel.y = dir.y * f
 	vel.z = dir.z * f
 	self.velocity = vel
 	self.old_pos = nil
@@ -126,16 +126,24 @@ function boost_cart.cart:on_step(dtime)
 			return
 		end
 		local expected_pos = vector.add(self.old_pos, self.old_dir)
-		if not vector.equals(flo_pos, expected_pos) then
+		local diff = vector.subtract(pos, expected_pos)
+		diff = {
+			x = math.abs(diff.x),
+			y = math.abs(diff.y),
+			z = math.abs(diff.z)
+		}
+		
+		if diff.x > 1.2 or diff.y > 1.2 or diff.z > 1.2 then
 			pos = vector.new(expected_pos)
 			self.punch = true
 		end
 	end
 	
+	local ro_vel = vector.round(vel)
 	local cart_dir = {
-		x = boost_cart:get_sign(vel.x),
-		y = boost_cart:get_sign(vel.y),
-		z = boost_cart:get_sign(vel.z)
+		x = boost_cart:get_sign(ro_vel.x),
+		y = boost_cart:get_sign(ro_vel.y),
+		z = boost_cart:get_sign(ro_vel.z)
 	}
 	local dir = boost_cart:get_rail_direction(pos, cart_dir)
 	if vector.equals(dir, {x=0, y=0, z=0}) then
@@ -160,9 +168,6 @@ function boost_cart.cart:on_step(dtime)
 		-- Up, down?
 		if dir.y ~= self.old_dir.y then
 			vel.y = dir.y * (math.abs(vel.x) + math.abs(vel.z))
-			--if dir.y == 1 then
-			--	pos.y = pos.y + 1.5
-			--end
 			pos = vector.round(pos)
 			self.punch = true
 		end
@@ -175,13 +180,6 @@ function boost_cart.cart:on_step(dtime)
 			z = dir.z * acc
 		}
 		
-		--for _,v in ipairs({"x","y","z"}) do
-		--	if math.abs(vel[v]) < math.abs(new_acc[v] * 1.3) then
-		--		vel[v] = 0
-		--		new_acc[v] = 0
-		--		self.punch = true
-		--	end
-		--end
 		self.object:setacceleration(new_acc)
 	end
 	
