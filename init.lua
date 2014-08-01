@@ -44,13 +44,12 @@ function boost_cart.cart:on_rightclick(clicker)
 		clicker:set_detach()
 	elseif not self.driver then
 		self.driver = player_name
-		clicker:set_attach(self.object, "", {x=0,y=5,z=0}, {x=0,y=0,z=0})
+		clicker:set_attach(self.object, "", {x=0, y=5, z=0}, {x=0, y=0, z=0})
 	end
 end
 
 function boost_cart.cart:on_activate(staticdata, dtime_s)
 	self.object:set_armor_groups({immortal=1})
-	self.old_pos = self.object:getpos()
 end
 
 function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabilities, direction)
@@ -133,8 +132,8 @@ function boost_cart.cart:on_step(dtime)
 			z = math.abs(diff.z)
 		}
 		
-		if diff.x > 1.2 or diff.y > 1.2 or diff.z > 1.2 then
-			pos = vector.new(expected_pos)
+		if diff.x > 1 or diff.y > 1 or diff.z > 1 then
+			pos = vector.new(self.old_pos)
 			self.punch = true
 		end
 	end
@@ -149,7 +148,6 @@ function boost_cart.cart:on_step(dtime)
 	if vector.equals(dir, {x=0, y=0, z=0}) then
 		vel = {x=0, y=0, z=0}
 		self.object:setacceleration({x=0, y=0, z=0})
-		self.old_pos = nil
 		self.punch = true
 	else
 		-- If the direction changed
@@ -173,7 +171,7 @@ function boost_cart.cart:on_step(dtime)
 		end
 		
 		-- Slow down or speed up..
-		local acc = (dir.y * -1.4) - 0.4
+		local acc = (dir.y * -2) - 0.4
 		local new_acc = {
 			x = dir.x * acc, 
 			y = dir.y * acc, 
