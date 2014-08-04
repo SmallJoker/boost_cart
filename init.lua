@@ -168,7 +168,6 @@ function boost_cart.cart:on_step(dtime)
 		local speed_mod = tonumber(minetest.get_meta(pos):get_string("cart_acceleration"))
 		if speed_mod and speed_mod ~= 0 then
 			if speed_mod > 0 then
-				local is_limit = false
 				for _,v in ipairs({"x","y","z"}) do
 					if math.abs(vel[v]) >= max_vel then
 						speed_mod = 0
