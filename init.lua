@@ -1,12 +1,10 @@
--- TODO: 
---  Fix way-up
+-- TODO:
 --  Add rail-cross switching
 --  Prevent from floating carts
---  Speed up and brake rails
 
 boost_cart = {}
 boost_cart.modpath = minetest.get_modpath("boost_cart")
-boost_cart.speed_max = 20
+boost_cart.speed_max = 10
 
 function vector.floor(v)
 	return {
@@ -65,16 +63,16 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 			end
 		end
     	self.object:remove()
-		puncher:get_inventory():add_item("main", "boost_cart:cart")
+		puncher:get_inventory():add_item("main", "carts:cart")
 		return
 	end
 	
 	local vel = self.velocity
-	--[[if puncher:get_player_name() == self.driver then
+	if puncher:get_player_name() == self.driver then
 		if math.abs(vel.x) + math.abs(vel.z) > 6 then
 			return
 		end
-	end]]
+	end
 	
 	local cart_dir = boost_cart:velocity_to_dir(direction)
 	if cart_dir.x == 0 and cart_dir.z == 0 then
@@ -120,29 +118,24 @@ function boost_cart.cart:on_step(dtime)
 		if vector.equals(flo_pos, flo_old) then
 			return
 		end
-		local expected_pos = vector.add(self.old_pos, self.old_dir)
-		local diff = vector.subtract(expected_pos, pos)
-		diff = {
-			x = math.abs(diff.x),
-			y = math.abs(diff.y),
-			z = math.abs(diff.z)
-		}
+		local diff = vector.subtract(self.old_pos, pos)
 		
-		if diff.x > math.abs(self.old_dir.x) or 
-				diff.y > math.abs(self.old_dir.y) or 
-				diff.z > math.abs(self.old_dir.z) then
-			pos = vector.new(expected_pos)
-			--minetest.log("action", "Cart moving too fast at "..minetest.pos_to_string(pos))
-			self.punch = true
+		for _,v in ipairs({"x","y","z"}) do
+			if math.abs(diff[v]) > 1.4 then
+				pos = vector.add(self.old_pos, self.old_dir)
+				self.punch = true
+				--minetest.log("action", "Cart moving too fast at "..minetest.pos_to_string(pos))
+				break
+			end
 		end
 	end
-	
 	local ro_vel = vector.round(vel)
 	local cart_dir = {
 		x = boost_cart:get_sign(ro_vel.x),
 		y = boost_cart:get_sign(ro_vel.y),
 		z = boost_cart:get_sign(ro_vel.z)
 	}
+	local max_vel = boost_cart.speed_max
 	local dir = boost_cart:get_rail_direction(pos, cart_dir)
 	if vector.equals(dir, {x=0, y=0, z=0}) then
 		vel = {x=0, y=0, z=0}
@@ -170,7 +163,24 @@ function boost_cart.cart:on_step(dtime)
 		end
 		
 		-- Slow down or speed up..
-		local acc = (dir.y * -2) - 0.4
+		local acc = dir.y * -2
+		
+		local speed_mod = tonumber(minetest.get_meta(pos):get_string("cart_acceleration"))
+		if speed_mod and speed_mod ~= 0 then
+			if speed_mod > 0 then
+				local is_limit = false
+				for _,v in ipairs({"x","y","z"}) do
+					if math.abs(vel[v]) >= max_vel then
+						speed_mod = 0
+						break
+					end
+				end
+			end
+			acc = acc + (speed_mod * 6)
+		else
+			acc = acc - 0.4
+		end
+		
 		local new_acc = {
 			x = dir.x * acc, 
 			y = dir.y * acc, 
@@ -185,8 +195,8 @@ function boost_cart.cart:on_step(dtime)
 	
 	-- Limits
 	for _,v in ipairs({"x","y","z"}) do
-		if math.abs(vel[v]) > boost_cart.speed_max then
-			vel[v] = boost_cart:get_sign(vel[v]) * boost_cart.speed_max
+		if math.abs(vel[v]) > max_vel then
+			vel[v] = boost_cart:get_sign(vel[v]) * max_vel
 			self.punch = true
 		end
 	end
@@ -215,8 +225,8 @@ function boost_cart.cart:on_step(dtime)
 	self.punch = false
 end
 
-minetest.register_entity("boost_cart:cart", boost_cart.cart)
-minetest.register_craftitem("boost_cart:cart", {
+minetest.register_entity(":carts:cart", boost_cart.cart)
+minetest.register_craftitem(":carts:cart", {
 	description = "Cart",
 	inventory_image = minetest.inventorycube("cart_top.png", "cart_side.png", "cart_side.png"),
 	wield_image = "cart_side.png",
@@ -225,9 +235,9 @@ minetest.register_craftitem("boost_cart:cart", {
 			return
 		end
 		if boost_cart:is_rail(pointed_thing.under) then
-			minetest.add_entity(pointed_thing.under, "boost_cart:cart")
+			minetest.add_entity(pointed_thing.under, "carts:cart")
 		elseif boost_cart:is_rail(pointed_thing.above) then
-			minetest.add_entity(pointed_thing.above, "boost_cart:cart")
+			minetest.add_entity(pointed_thing.above, "carts:cart")
 		else return end
 		
 		itemstack:take_item()
