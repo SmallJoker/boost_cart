@@ -69,7 +69,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	
 	local vel = self.velocity
 	if puncher:get_player_name() == self.driver then
-		if math.abs(vel.x) + math.abs(vel.z) > 6 then
+		if math.abs(vel.x) + math.abs(vel.z) > 4 then
 			return
 		end
 	end
@@ -111,6 +111,7 @@ function boost_cart.cart:on_step(dtime)
 		return
 	end
 	
+	local dir = false
 	local pos = self.object:getpos()
 	if self.old_pos and not self.punch then
 		local flo_pos = vector.floor(pos)
@@ -118,25 +119,45 @@ function boost_cart.cart:on_step(dtime)
 		if vector.equals(flo_pos, flo_old) then
 			return
 		end
+	end
+	if self.old_pos then
 		local diff = vector.subtract(self.old_pos, pos)
-		
 		for _,v in ipairs({"x","y","z"}) do
-			if math.abs(diff[v]) > 1.4 then
-				pos = vector.add(self.old_pos, self.old_dir)
-				self.punch = true
-				--minetest.log("action", "Cart moving too fast at "..minetest.pos_to_string(pos))
+			if math.abs(diff[v]) > 1.2 then
+				local expected_pos = vector.add(self.old_pos, self.old_dir)
+				dir = boost_cart:get_rail_direction(pos, self.old_dir)
+				if vector.equals(dir, {x=0, y=0, z=0}) then
+					dir = false
+					pos = vector.new(expected_pos)
+					self.punch = true
+				--else
+				--	pos = vector.add(self.old_pos, self.old_dir)
+				end
+				--minetest.log("action", "Cart moving too fast at "..minetest.pos_to_string(expected_pos))
 				break
 			end
 		end
 	end
-	local ro_vel = vector.round(vel)
+	
+	if vel.y == 0 then
+		for _,v in ipairs({"x", "z"}) do
+			if vel[v] ~= 0 and math.abs(vel[v]) < 0.9 then
+				vel[v] = 0
+				self.punch = true
+			end
+		end
+	end
+	
 	local cart_dir = {
-		x = boost_cart:get_sign(ro_vel.x),
-		y = boost_cart:get_sign(ro_vel.y),
-		z = boost_cart:get_sign(ro_vel.z)
+		x = boost_cart:get_sign(vel.x),
+		y = boost_cart:get_sign(vel.y),
+		z = boost_cart:get_sign(vel.z)
 	}
+	
 	local max_vel = boost_cart.speed_max
-	local dir = boost_cart:get_rail_direction(pos, cart_dir)
+	if not dir then
+		dir = boost_cart:get_rail_direction(pos, cart_dir)
+	end
 	if vector.equals(dir, {x=0, y=0, z=0}) then
 		vel = {x=0, y=0, z=0}
 		self.object:setacceleration({x=0, y=0, z=0})
