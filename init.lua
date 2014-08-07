@@ -130,8 +130,6 @@ function boost_cart.cart:on_step(dtime)
 					dir = false
 					pos = vector.new(expected_pos)
 					self.punch = true
-				--else
-				--	pos = vector.add(self.old_pos, self.old_dir)
 				end
 				--minetest.log("action", "Cart moving too fast at "..minetest.pos_to_string(expected_pos))
 				break
@@ -184,7 +182,7 @@ function boost_cart.cart:on_step(dtime)
 		end
 		
 		-- Slow down or speed up..
-		local acc = dir.y * -2
+		local acc = dir.y * -1.8
 		
 		local speed_mod = tonumber(minetest.get_meta(pos):get_string("cart_acceleration"))
 		if speed_mod and speed_mod ~= 0 then
@@ -196,7 +194,7 @@ function boost_cart.cart:on_step(dtime)
 					end
 				end
 			end
-			acc = acc + (speed_mod * 6)
+			acc = acc + (speed_mod * 7)
 		else
 			acc = acc - 0.4
 		end
