@@ -19,6 +19,32 @@ function boost_cart:is_rail(pos)
 	return minetest.get_item_group(node, "rail") ~= 0
 end
 
+function boost_cart:check_front_up_down(pos, dir, onlyDown)
+	local cur = nil
+	
+	-- Front
+	dir.y = 0
+	cur = vector.add(pos, dir)
+	if boost_cart:is_rail(cur) then
+		return dir
+	end
+	-- Up
+	if not onlyDown then
+		dir.y = 1
+		cur = vector.add(pos, dir)
+		if boost_cart:is_rail(cur) then
+			return dir
+		end
+	end
+	-- Down
+	dir.y = -1
+	cur = vector.add(pos, dir)
+	if boost_cart:is_rail(cur) then
+		return dir
+	end
+	return nil
+end
+
 function boost_cart:get_rail_direction(pos_, dir_, ctrl, old_switch)
 	local pos = vector.round(pos_)
 	local dir = vector.new(dir_)
@@ -44,57 +70,43 @@ function boost_cart:get_rail_direction(pos_, dir_, ctrl, old_switch)
 			right_check = false
 		end
 		if ctrl.left and left_check then
-			cur = vector.add(pos, left)
-			if boost_cart:is_rail(cur) then
-				return left, 1
+			cur = boost_cart:check_front_up_down(pos, left, true)
+			if cur then
+				return cur, 1
 			end
 			left_check = false
 		end
 		if ctrl.right and right_check then
-			cur = vector.add(pos, right)
-			if boost_cart:is_rail(cur) then
-				return right, 2
+			cur = boost_cart:check_front_up_down(pos, right, true)
+			if cur then
+				return cur, 2
 			end
 			right_check = true
 		end
 	end
 	
-	-- Front
-	dir.y = 0
-	cur = vector.add(pos, dir)
-	if boost_cart:is_rail(cur) then
-		return dir
-	end
-	
-	-- Down
-	dir.y = -1
-	cur = vector.add(pos, dir)
-	if boost_cart:is_rail(cur) then
-		return dir
-	end
-	
-	-- Up
-	dir.y = 1
-	cur = vector.add(pos, dir)
-	if boost_cart:is_rail(cur) then
-		return dir
+	-- Normal
+	cur = boost_cart:check_front_up_down(pos, dir)
+	if cur then
+		return cur
 	end
 	
 	-- Left, if not already checked
 	if left_check then
-		cur = vector.add(pos, left)
-		if boost_cart:is_rail(cur) then
-			return left
+		cur = boost_cart:check_front_up_down(pos, left, true)
+		if cur then
+			return cur
 		end
 	end
 	
 	-- Right, if not already checked
 	if right_check then
-		cur = vector.add(pos, right)
-		if boost_cart:is_rail(cur) then
-			return right
+		cur = boost_cart:check_front_up_down(pos, right, true)
+		if cur then
+			return cur
 		end
 	end
 	
 	return {x=0, y=0, z=0}
 end
+
