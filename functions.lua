@@ -19,10 +19,45 @@ function boost_cart:is_rail(pos)
 	return minetest.get_item_group(node, "rail") ~= 0
 end
 
-function boost_cart:get_rail_direction(pos_, dir_)
+function boost_cart:get_rail_direction(pos_, dir_, ctrl, old_switch)
 	local pos = vector.round(pos_)
 	local dir = vector.new(dir_)
 	local cur = nil
+	local left_check, right_check = true, true
+	old_switch = old_switch or 0
+	
+	-- Check left and right
+	local left = {x=0, y=0, z=0}
+	local right = {x=0, y=0, z=0}
+	if dir.z ~= 0 and dir.x == 0 then
+		left.x = -dir.z
+		right.x = dir.z
+	elseif dir.x ~= 0 and dir.z == 0 then
+		left.z = dir.x
+		right.z = -dir.x
+	end
+	
+	if ctrl then
+		if old_switch == 1 then
+			left_check = false
+		elseif old_switch == 2 then
+			right_check = false
+		end
+		if ctrl.left and left_check then
+			cur = vector.add(pos, left)
+			if boost_cart:is_rail(cur) then
+				return left, 1
+			end
+			left_check = false
+		end
+		if ctrl.right and right_check then
+			cur = vector.add(pos, right)
+			if boost_cart:is_rail(cur) then
+				return right, 2
+			end
+			right_check = true
+		end
+	end
 	
 	-- Front
 	dir.y = 0
@@ -45,58 +80,20 @@ function boost_cart:get_rail_direction(pos_, dir_)
 		return dir
 	end
 	
-	-- Left, right
-	dir.y = 0
-	
-	-- Check left and right
-	local view, opposite, val
-	
-	if dir.x == 0 and dir.z ~= 0 then
-		view = "z"
-		other = "x"
-		if dir.z < 0 then
-			val = {1, -1}
-		else
-			val = {-1, 1}
+	-- Left, if not already checked
+	if left_check then
+		cur = vector.add(pos, left)
+		if boost_cart:is_rail(cur) then
+			return left
 		end
-	elseif dir.z == 0 and dir.x ~= 0 then
-		view = "x"
-		other = "z"
-		if dir.x > 0 then
-			val = {1, -1}
-		else
-			val = {-1, 1}
+	end
+	
+	-- Right, if not already checked
+	if right_check then
+		cur = vector.add(pos, right)
+		if boost_cart:is_rail(cur) then
+			return right
 		end
-	else
-		return {x=0, y=0, z=0}
-	end
-	
-	dir[view] = 0
-	dir[other] = val[1]
-	cur = vector.add(pos, dir)
-	if boost_cart:is_rail(cur) then
-		return dir
-	end
-	
-	-- Down
-	dir.y = -1
-	cur = vector.add(pos, dir)
-	if boost_cart:is_rail(cur) then
-		return dir
-	end
-	dir.y = 0
-	
-	dir[other] = val[2]
-	cur = vector.add(pos, dir)
-	if boost_cart:is_rail(cur) then
-		return dir
-	end
-	
-	-- Down
-	dir.y = -1
-	cur = vector.add(pos, dir)
-	if boost_cart:is_rail(cur) then
-		return dir
 	end
 	
 	return {x=0, y=0, z=0}

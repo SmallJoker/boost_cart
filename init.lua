@@ -29,7 +29,8 @@ boost_cart.cart = {
 	punch = false, -- used to re-send velocity and position
 	velocity = {x=0, y=0, z=0}, -- only used on punch
 	old_dir = {x=0, y=0, z=0},
-	old_pos = nil
+	old_pos = nil,
+	old_switch = nil
 }
 
 function boost_cart.cart:on_rightclick(clicker)
@@ -42,7 +43,7 @@ function boost_cart.cart:on_rightclick(clicker)
 		clicker:set_detach()
 	elseif not self.driver then
 		self.driver = player_name
-		clicker:set_attach(self.object, "", {x=0, y=5, z=0}, {x=0, y=0, z=0})
+		clicker:set_attach(self.object, "", {x=0,y=0.5,z=0}, {x=0,y=0,z=0})
 	end
 end
 
@@ -57,6 +58,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 
 	if puncher:get_player_control().sneak then
 		if self.driver then
+			default.player_attached[self.driver] = nil
 			local player = minetest.get_player_by_name(self.driver)
 			if player then
 				player:set_detach()
@@ -111,7 +113,7 @@ function boost_cart.cart:on_step(dtime)
 		return
 	end
 	
-	local dir = false
+	local dir, last_switch = nil, nil
 	local pos = self.object:getpos()
 	if self.old_pos and not self.punch then
 		local flo_pos = vector.floor(pos)
@@ -120,12 +122,19 @@ function boost_cart.cart:on_step(dtime)
 			return
 		end
 	end
+	local ctrl = nil
+	if self.driver then
+		local player = minetest.get_player_by_name(self.driver)
+		if player then
+			ctrl = player:get_player_control()
+		end
+	end
 	if self.old_pos then
 		local diff = vector.subtract(self.old_pos, pos)
 		for _,v in ipairs({"x","y","z"}) do
 			if math.abs(diff[v]) > 1.2 then
 				local expected_pos = vector.add(self.old_pos, self.old_dir)
-				dir = boost_cart:get_rail_direction(pos, self.old_dir)
+				dir, last_switch = boost_cart:get_rail_direction(pos, self.old_dir, ctrl, self.old_switch)
 				if vector.equals(dir, {x=0, y=0, z=0}) then
 					dir = false
 					pos = vector.new(expected_pos)
@@ -154,7 +163,7 @@ function boost_cart.cart:on_step(dtime)
 	
 	local max_vel = boost_cart.speed_max
 	if not dir then
-		dir = boost_cart:get_rail_direction(pos, cart_dir)
+		dir, last_switch = boost_cart:get_rail_direction(pos, cart_dir, ctrl, self.old_switch)
 	end
 	if vector.equals(dir, {x=0, y=0, z=0}) then
 		vel = {x=0, y=0, z=0}
@@ -194,9 +203,13 @@ function boost_cart.cart:on_step(dtime)
 					end
 				end
 			end
-			acc = acc + (speed_mod * 7)
+			acc = acc + (speed_mod * 8)
 		else
 			acc = acc - 0.4
+			-- Handbrake
+			if ctrl and ctrl.down then
+				acc = acc - 0.8
+			end
 		end
 		
 		local new_acc = {
@@ -210,6 +223,7 @@ function boost_cart.cart:on_step(dtime)
 	
 	self.old_pos = vector.new(pos)
 	self.old_dir = vector.new(dir)
+	self.old_switch = last_switch
 	
 	-- Limits
 	for _,v in ipairs({"x","y","z"}) do
