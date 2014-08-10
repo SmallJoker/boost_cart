@@ -1,6 +1,5 @@
 -- TODO:
---  Add rail-cross switching
---  Prevent from floating carts
+--  Add a todo list
 
 boost_cart = {}
 boost_cart.modpath = minetest.get_modpath("boost_cart")
@@ -69,9 +68,9 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 		return
 	end
 	
-	local vel = self.velocity
+	local vel = self.object:getvelocity()
 	if puncher:get_player_name() == self.driver then
-		if math.abs(vel.x) + math.abs(vel.z) > 4 then
+		if math.abs(vel.x) + math.abs(vel.z) > 5 then
 			return
 		end
 	end
@@ -207,8 +206,8 @@ function boost_cart.cart:on_step(dtime)
 		else
 			acc = acc - 0.4
 			-- Handbrake
-			if ctrl and ctrl.down then
-				acc = acc - 0.8
+			if ctrl and ctrl.down and math.abs(vel.x) + math.abs(vel.z) > 1.2 then
+				acc = acc - 1.2
 			end
 		end
 		
