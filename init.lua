@@ -42,7 +42,7 @@ function boost_cart.cart:on_rightclick(clicker)
 		clicker:set_detach()
 	elseif not self.driver then
 		self.driver = player_name
-		clicker:set_attach(self.object, "", {x=0, y=5, z=0}, {x=0, y=0, z=0})
+		clicker:set_attach(self.object, "", {x=0, y=0.5, z=0}, {x=0, y=0, z=0})
 	end
 end
 
@@ -70,7 +70,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	
 	local vel = self.object:getvelocity()
 	if puncher:get_player_name() == self.driver then
-		if math.abs(vel.x) + math.abs(vel.z) > 5 then
+		if math.abs(vel.x) + math.abs(vel.z) > 6 then
 			return
 		end
 	end
@@ -93,6 +93,10 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 		time_from_last_punch = tool_capabilities.full_punch_interval
 	end
 	local dir = boost_cart:get_rail_direction(self.object:getpos(), cart_dir)
+	
+	if vector.equals(dir, {x=0, y=0, z=0}) then
+		return
+	end
 	
 	local f = 4 * (time_from_last_punch / tool_capabilities.full_punch_interval)
 	vel.x = dir.x * f
