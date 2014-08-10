@@ -42,7 +42,7 @@ function boost_cart.cart:on_rightclick(clicker)
 		clicker:set_detach()
 	elseif not self.driver then
 		self.driver = player_name
-		clicker:set_attach(self.object, "", {x=0, y=0.5, z=0}, {x=0, y=0, z=0})
+		clicker:set_attach(self.object, "", {x=0, y=3, z=0}, {x=0, y=0, z=0})
 	end
 end
 
@@ -135,7 +135,7 @@ function boost_cart.cart:on_step(dtime)
 	if self.old_pos then
 		local diff = vector.subtract(self.old_pos, pos)
 		for _,v in ipairs({"x","y","z"}) do
-			if math.abs(diff[v]) > 1.2 then
+			if math.abs(diff[v]) > 1.1 then
 				local expected_pos = vector.add(self.old_pos, self.old_dir)
 				dir, last_switch = boost_cart:get_rail_direction(pos, self.old_dir, ctrl, self.old_switch)
 				if vector.equals(dir, {x=0, y=0, z=0}) then
