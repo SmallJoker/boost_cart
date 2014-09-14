@@ -63,7 +63,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 				player:set_detach()
 			end
 		end
-    	self.object:remove()
+		self.object:remove()
 		puncher:get_inventory():add_item("main", "carts:cart")
 		return
 	end
