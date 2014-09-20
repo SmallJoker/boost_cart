@@ -168,9 +168,10 @@ function boost_cart.cart:on_step(dtime)
 	if not dir then
 		dir, last_switch = boost_cart:get_rail_direction(pos, cart_dir, ctrl, self.old_switch)
 	end
+	
+	local new_acc = {x=0, y=0, z=0}
 	if vector.equals(dir, {x=0, y=0, z=0}) then
 		vel = {x=0, y=0, z=0}
-		self.object:setacceleration({x=0, y=0, z=0})
 		self.punch = true
 	else
 		-- If the direction changed
@@ -215,15 +216,15 @@ function boost_cart.cart:on_step(dtime)
 			end
 		end
 		
-		local new_acc = {
+		new_acc = {
 			x = dir.x * acc, 
 			y = dir.y * acc, 
 			z = dir.z * acc
 		}
 		
-		self.object:setacceleration(new_acc)
 	end
 	
+	self.object:setacceleration(new_acc)
 	self.old_pos = vector.new(pos)
 	self.old_dir = vector.new(dir)
 	self.old_switch = last_switch
@@ -236,23 +237,24 @@ function boost_cart.cart:on_step(dtime)
 		end
 	end
 	
+	local yaw = 0
 	if dir.x < 0 then
-		self.object:setyaw(math.pi / 2)
+		yaw = 0.5
 	elseif dir.x > 0 then
-		self.object:setyaw(3 * math.pi / 2)
+		yaw = 3 / 2
 	elseif dir.z < 0 then
-		self.object:setyaw(math.pi)
-	elseif dir.z > 0 then
-		self.object:setyaw(0)
+		yaw = 1
 	end
+	self.object:setyaw(yaw * math.pi)
 
+	local anim = {x=0, y=0}
 	if dir.y == -1 then
-		self.object:set_animation({x=1, y=1}, 1, 0)
+		anim = {x=1, y=1}
 	elseif dir.y == 1 then
-		self.object:set_animation({x=2, y=2}, 1, 0)
-	else
-		self.object:set_animation({x=0, y=0}, 1, 0)
+		anim = {x=2, y=2}
 	end
+	self.object:set_animation(anim, 1, 0)
+	
 	if self.punch then
 		self.object:setvelocity(vel)
 		self.object:setpos(pos)
