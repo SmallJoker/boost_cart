@@ -119,6 +119,7 @@ end
 
 function boost_cart.cart:on_step(dtime)
 	local vel = self.object:getvelocity()
+	local is_realpunch = self.punch
 	if self.punch then
 		vel = vector.add(vel, self.velocity)
 		self.velocity = {x=0, y=0, z=0}
@@ -246,6 +247,10 @@ function boost_cart.cart:on_step(dtime)
 		end
 	end
 	
+	if not self.punch then
+		return
+	end
+	
 	local yaw = 0
 	if dir.x < 0 then
 		yaw = 0.5
@@ -255,7 +260,7 @@ function boost_cart.cart:on_step(dtime)
 		yaw = 1
 	end
 	self.object:setyaw(yaw * math.pi)
-
+	
 	local anim = {x=0, y=0}
 	if dir.y == -1 then
 		anim = {x=1, y=1}
@@ -264,10 +269,10 @@ function boost_cart.cart:on_step(dtime)
 	end
 	self.object:set_animation(anim, 1, 0)
 	
-	if self.punch then
-		self.object:setvelocity(vel)
-		self.object:setpos(pos)
-		
+	self.object:setvelocity(vel)
+	self.object:setpos(pos)
+	
+	if is_realpunch then
 		for _,obj_ in ipairs(minetest.get_objects_inside_radius(pos, 1)) do
 			if not obj_:is_player() and
 					obj_:get_luaentity() and
