@@ -43,6 +43,7 @@ function boost_cart.cart:on_rightclick(clicker)
 		clicker:set_detach()
 	elseif not self.driver then
 		self.driver = player_name
+		default.player_attached[player_name] = true
 		clicker:set_attach(self.object, "", {x=0, y=3, z=0}, {x=0, y=0, z=0})
 	end
 end
