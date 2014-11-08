@@ -1,6 +1,6 @@
 Minetest mod: boost_cart
 =======================
-Based on the mod "carts" by PilzAdam
+Based on (and fully compatible with) the mod "carts" by PilzAdam
 Target: Run smoothly and do not use too much CPU
 
 License of source code:

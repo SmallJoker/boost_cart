@@ -15,32 +15,36 @@ minetest.register_node(":default:rail", {
 	groups = {dig_immediate = 2, attached_node = 1, rail = 1, connect_to_raillike = 1},
 })
 
--- Copper rail
-minetest.register_node(":carts:copperrail", {
-	description = "Copper rail",
-	drawtype = "raillike",
-	tiles = {"carts_rail_cp.png", "carts_rail_curved_cp.png", "carts_rail_t_junction_cp.png", "carts_rail_crossing_cp.png"},
-	inventory_image = "carts_rail_cp.png",
-	wield_image = "carts_rail_cp.png",
-	paramtype = "light",
-	is_ground_content = true,
-	walkable = false,
-	selection_box = {
-		type = "fixed",
-		-- but how to specify the dimensions for curved and sideways rails?
-		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
-	},
-	groups = {dig_immediate = 2, attached_node = 1, rail = 1, connect_to_raillike = 1},
-})
+if minetest.get_modpath("moreores") then
+	-- Moreores' copper rail
+	minetest.register_alias("carts:copperrail", "moreores:copper_rail")
+else
+	minetest.register_node(":carts:copperrail", {
+		description = "Copper rail",
+		drawtype = "raillike",
+		tiles = {"carts_rail_cp.png", "carts_rail_curved_cp.png", "carts_rail_t_junction_cp.png", "carts_rail_crossing_cp.png"},
+		inventory_image = "carts_rail_cp.png",
+		wield_image = "carts_rail_cp.png",
+		paramtype = "light",
+		is_ground_content = true,
+		walkable = false,
+		selection_box = {
+			type = "fixed",
+			-- but how to specify the dimensions for curved and sideways rails?
+			fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
+		},
+		groups = {dig_immediate = 2, attached_node = 1, rail = 1, connect_to_raillike = 1},
+	})
 
-minetest.register_craft({
-	output = "carts:copperrail 12",
-	recipe = {
-		{"default:copper_ingot", "group:stick", "default:copper_ingot"},
-		{"default:copper_ingot", "group:stick", "default:copper_ingot"},
-		{"default:copper_ingot", "group:stick", "default:copper_ingot"},
-	}
-})
+	minetest.register_craft({
+		output = "carts:copperrail 12",
+		recipe = {
+			{"default:copper_ingot", "group:stick", "default:copper_ingot"},
+			{"default:copper_ingot", "group:stick", "default:copper_ingot"},
+			{"default:copper_ingot", "group:stick", "default:copper_ingot"},
+		}
+	})
+end
 
 -- Speed up
 
