@@ -16,6 +16,17 @@ end
 
 function boost_cart:is_rail(pos)
 	local node = minetest.get_node(pos).name
+	if node == "ignore" then
+		local vm = minetest.get_voxel_manip()
+		local emin, emax = vm:read_from_map(pos, pos)
+		local area = VoxelArea:new{
+			MinEdge = emin,
+			MaxEdge = emax,
+		}
+		local data = vm:get_data()
+		local vi = area:indexp(pos)
+		node = minetest.get_name_from_content_id(data[vi])
+	end
 	return minetest.get_item_group(node, "rail") ~= 0
 end
 

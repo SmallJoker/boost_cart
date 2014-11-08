@@ -3,7 +3,7 @@
 
 boost_cart = {}
 boost_cart.modpath = minetest.get_modpath("boost_cart")
-boost_cart.speed_max = 10
+boost_cart.speed_max = 11
 
 function vector.floor(v)
 	return {
