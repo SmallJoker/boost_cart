@@ -223,6 +223,19 @@ function boost_cart.cart:on_step(dtime)
 		end
 	end
 	
+	if not send_pos then
+		-- Collect dropped items
+		for _,obj_ in ipairs(minetest.get_objects_inside_radius(pos, 1)) do
+			if not obj_:is_player() and
+					obj_:get_luaentity() and
+					not obj_:get_luaentity().physical_state and
+					obj_:get_luaentity().name == "__builtin:item" then
+				obj_:set_attach(self.object, "", {x=0, y=0, z=0}, {x=0, y=0, z=0})
+				self.attached_items[#self.attached_items + 1] = obj_
+			end
+		end
+	end
+	
 	self.update = false
 	if not update then
 		return
@@ -249,17 +262,6 @@ function boost_cart.cart:on_step(dtime)
 	self.object:setvelocity(vel)
 	if send_pos then
 		self.object:setpos(pos)
-	else
-		-- Collect dropped items
-		for _,obj_ in ipairs(minetest.get_objects_inside_radius(pos, 1)) do
-			if not obj_:is_player() and
-					obj_:get_luaentity() and
-					not obj_:get_luaentity().physical_state and
-					obj_:get_luaentity().name == "__builtin:item" then
-				obj_:set_attach(self.object, "", {x=0, y=0, z=0}, {x=0, y=0, z=0})
-				self.attached_items[#self.attached_items + 1] = obj_
-			end
-		end
 	end
 end
 
