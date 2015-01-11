@@ -3,7 +3,7 @@
 
 boost_cart = {}
 boost_cart.modpath = minetest.get_modpath("boost_cart")
-boost_cart.speed_max = 11
+boost_cart.speed_max = 10
 
 function vector.floor(v)
 	return {
@@ -25,7 +25,7 @@ boost_cart.cart = {
 	textures = {"cart.png"},
 	
 	driver = nil,
-	punch = false, -- used to re-send velocity and position
+	update = false, -- used to re-send velocity and position
 	velocity = {x=0, y=0, z=0}, -- only used on punch
 	old_dir = {x=0, y=0, z=0},
 	old_pos = nil,
@@ -81,62 +81,47 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	
 	local vel = self.object:getvelocity()
 	if puncher:get_player_name() == self.driver then
-		if math.abs(vel.x) + math.abs(vel.z) > 6 then
+		if math.abs(vel.x + vel.z) > 7 then
 			return
 		end
 	end
 	
-	local cart_dir = boost_cart:velocity_to_dir(direction)
-	if cart_dir.x == 0 and cart_dir.z == 0 then
-		local fd = minetest.dir_to_facedir(puncher:get_look_dir())
-		if fd == 0 then
-			cart_dir.x = 1
-		elseif fd == 1 then
-			cart_dir.z = -1
-		elseif fd == 2 then
-			cart_dir.x = -1
-		elseif fd == 3 then
-			cart_dir.z = 1
-		end
-	end
-
-	if time_from_last_punch > tool_capabilities.full_punch_interval then
-		time_from_last_punch = tool_capabilities.full_punch_interval
-	end
-	local dir = boost_cart:get_rail_direction(self.object:getpos(), cart_dir)
-	
-	if vector.equals(dir, {x=0, y=0, z=0}) then
+	local punch_dir = boost_cart:velocity_to_dir(puncher:get_look_dir())
+	punch_dir.y = 0
+	local cart_dir = boost_cart:get_rail_direction(self.object:getpos(), punch_dir)
+	if vector.equals(cart_dir, {x=0, y=0, z=0}) then
 		return
 	end
 	
-	local f = 4 * (time_from_last_punch / tool_capabilities.full_punch_interval)
-	vel.x = dir.x * f
-	vel.y = dir.y * f
-	vel.z = dir.z * f
-	self.velocity = vel
+	time_from_last_punch = math.min(time_from_last_punch, tool_capabilities.full_punch_interval)
+	local f = 3 * (time_from_last_punch / tool_capabilities.full_punch_interval)
+	
+	self.velocity = vector.multiply(cart_dir, f)
 	self.old_pos = nil
-	self.punch = true
+	self.update = true
 end
 
 function boost_cart.cart:on_step(dtime)
 	local vel = self.object:getvelocity()
-	local is_realpunch = self.punch
-	if self.punch then
+	local send_pos = (not self.update)
+	if self.update then
 		vel = vector.add(vel, self.velocity)
-		self.velocity = {x=0, y=0, z=0}
+		self.object:setvelocity(vel)
 	elseif vector.equals(vel, {x=0, y=0, z=0}) then
 		return
 	end
 	
 	local dir, last_switch = nil, nil
 	local pos = self.object:getpos()
-	if self.old_pos and not self.punch then
+	if self.old_pos and not self.update then
 		local flo_pos = vector.floor(pos)
 		local flo_old = vector.floor(self.old_pos)
 		if vector.equals(flo_pos, flo_old) then
 			return
 		end
 	end
+	
+	local update = false
 	local ctrl = nil
 	if self.driver then
 		local player = minetest.get_player_by_name(self.driver)
@@ -153,7 +138,7 @@ function boost_cart.cart:on_step(dtime)
 				if vector.equals(dir, {x=0, y=0, z=0}) then
 					dir = false
 					pos = vector.new(expected_pos)
-					self.punch = true
+					update = true
 				end
 				break
 			end
@@ -164,17 +149,12 @@ function boost_cart.cart:on_step(dtime)
 		for _,v in ipairs({"x", "z"}) do
 			if vel[v] ~= 0 and math.abs(vel[v]) < 0.9 then
 				vel[v] = 0
-				self.punch = true
+				update = true
 			end
 		end
 	end
 	
-	local cart_dir = {
-		x = boost_cart:get_sign(vel.x),
-		y = boost_cart:get_sign(vel.y),
-		z = boost_cart:get_sign(vel.z)
-	}
-	
+	local cart_dir = boost_cart:velocity_to_dir(vel)
 	local max_vel = boost_cart.speed_max
 	if not dir then
 		dir, last_switch = boost_cart:get_rail_direction(pos, cart_dir, ctrl, self.old_switch)
@@ -183,26 +163,26 @@ function boost_cart.cart:on_step(dtime)
 	local new_acc = {x=0, y=0, z=0}
 	if vector.equals(dir, {x=0, y=0, z=0}) then
 		vel = {x=0, y=0, z=0}
-		self.punch = true
+		update = true
 	else
 		-- If the direction changed
 		if dir.x ~= 0 and self.old_dir.z ~= 0 then
 			vel.x = dir.x * math.abs(vel.z)
 			vel.z = 0
 			pos.z = math.floor(pos.z + 0.5)
-			self.punch = true
+			update = true
 		end
 		if dir.z ~= 0 and self.old_dir.x ~= 0 then
 			vel.z = dir.z * math.abs(vel.x)
 			vel.x = 0
 			pos.x = math.floor(pos.x + 0.5)
-			self.punch = true
+			update = true
 		end
 		-- Up, down?
 		if dir.y ~= self.old_dir.y then
-			vel.y = dir.y * (math.abs(vel.x) + math.abs(vel.z))
+			vel.y = dir.y * math.abs(vel.x + vel.z)
 			pos = vector.round(pos)
-			self.punch = true
+			update = true
 		end
 		
 		-- Slow down or speed up..
@@ -222,17 +202,12 @@ function boost_cart.cart:on_step(dtime)
 		else
 			acc = acc - 0.4
 			-- Handbrake
-			if ctrl and ctrl.down and math.abs(vel.x) + math.abs(vel.z) > 1.2 then
+			if ctrl and ctrl.down and math.abs(vel.x + vel.z) > 1.2 then
 				acc = acc - 1.2
 			end
 		end
 		
-		new_acc = {
-			x = dir.x * acc, 
-			y = dir.y * acc, 
-			z = dir.z * acc
-		}
-		
+		new_acc = vector.multiply(dir, acc)
 	end
 	
 	self.object:setacceleration(new_acc)
@@ -244,11 +219,12 @@ function boost_cart.cart:on_step(dtime)
 	for _,v in ipairs({"x","y","z"}) do
 		if math.abs(vel[v]) > max_vel then
 			vel[v] = boost_cart:get_sign(vel[v]) * max_vel
-			self.punch = true
+			update = true
 		end
 	end
 	
-	if not self.punch then
+	self.update = false
+	if not update then
 		return
 	end
 	
@@ -271,9 +247,10 @@ function boost_cart.cart:on_step(dtime)
 	self.object:set_animation(anim, 1, 0)
 	
 	self.object:setvelocity(vel)
-	self.object:setpos(pos)
-	
-	if is_realpunch then
+	if send_pos then
+		self.object:setpos(pos)
+	else
+		-- Collect dropped items
 		for _,obj_ in ipairs(minetest.get_objects_inside_radius(pos, 1)) do
 			if not obj_:is_player() and
 					obj_:get_luaentity() and
@@ -284,7 +261,6 @@ function boost_cart.cart:on_step(dtime)
 			end
 		end
 	end
-	self.punch = false
 end
 
 minetest.register_entity(":carts:cart", boost_cart.cart)
