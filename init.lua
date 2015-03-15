@@ -80,6 +80,12 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 		return
 	end
 	
+	if not self.railtype then
+		local pos = vector.floor(self.object:getpos())
+		local node = minetest.get_node(pos).name
+		self.railtype = minetest.get_item_group(node, "connect_to_raillike")
+	end
+	
 	local vel = self.object:getvelocity()
 	if puncher:get_player_name() == self.driver then
 		if math.abs(vel.x + vel.z) > 7 then
@@ -89,7 +95,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	
 	local punch_dir = boost_cart:velocity_to_dir(puncher:get_look_dir())
 	punch_dir.y = 0
-	local cart_dir = boost_cart:get_rail_direction(self.object:getpos(), punch_dir)
+	local cart_dir = boost_cart:get_rail_direction(self.object:getpos(), punch_dir, nil, self.railtype)
 	if vector.equals(cart_dir, {x=0, y=0, z=0}) then
 		return
 	end
@@ -134,7 +140,7 @@ function boost_cart.cart:on_step(dtime)
 		for _,v in ipairs({"x","y","z"}) do
 			if math.abs(diff[v]) > 1.1 then
 				local expected_pos = vector.add(self.old_pos, self.old_dir)
-				dir, last_switch = boost_cart:get_rail_direction(pos, self.old_dir, ctrl, self.old_switch)
+				dir, last_switch = boost_cart:get_rail_direction(pos, self.old_dir, ctrl, self.old_switch, self.railtype)
 				if vector.equals(dir, {x=0, y=0, z=0}) then
 					dir = false
 					pos = vector.new(expected_pos)
@@ -157,7 +163,7 @@ function boost_cart.cart:on_step(dtime)
 	local cart_dir = boost_cart:velocity_to_dir(vel)
 	local max_vel = boost_cart.speed_max
 	if not dir then
-		dir, last_switch = boost_cart:get_rail_direction(pos, cart_dir, ctrl, self.old_switch)
+		dir, last_switch = boost_cart:get_rail_direction(pos, cart_dir, ctrl, self.old_switch, self.railtype)
 	end
 	
 	local new_acc = {x=0, y=0, z=0}

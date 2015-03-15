@@ -14,7 +14,7 @@ function boost_cart:velocity_to_dir(v)
 	end
 end
 
-function boost_cart:is_rail(pos)
+function boost_cart:is_rail(pos, railtype)
 	local node = minetest.get_node(pos).name
 	if node == "ignore" then
 		local vm = minetest.get_voxel_manip()
@@ -30,41 +30,39 @@ function boost_cart:is_rail(pos)
 	if minetest.get_item_group(node, "rail") == 0 then
 		return false
 	end
-	local group = minetest.get_item_group(node, "connect_to_raillike")
-	if self.railtype == nil then
-		self.railtype = group
+	if not railtype then
 		return true
 	end
-	return group == self.railtype
+	return minetest.get_item_group(node, "connect_to_raillike") == railtype
 end
 
-function boost_cart:check_front_up_down(pos, dir, onlyDown)
+function boost_cart:check_front_up_down(pos, dir, onlyDown, railtype)
 	local cur = nil
 	
 	-- Front
 	dir.y = 0
 	cur = vector.add(pos, dir)
-	if boost_cart:is_rail(cur) then
+	if boost_cart:is_rail(cur, railtype) then
 		return dir
 	end
 	-- Up
 	if not onlyDown then
 		dir.y = 1
 		cur = vector.add(pos, dir)
-		if boost_cart:is_rail(cur) then
+		if boost_cart:is_rail(cur, railtype) then
 			return dir
 		end
 	end
 	-- Down
 	dir.y = -1
 	cur = vector.add(pos, dir)
-	if boost_cart:is_rail(cur) then
+	if boost_cart:is_rail(cur, railtype) then
 		return dir
 	end
 	return nil
 end
 
-function boost_cart:get_rail_direction(pos_, dir_, ctrl, old_switch)
+function boost_cart:get_rail_direction(pos_, dir_, ctrl, old_switch, railtype)
 	local pos = vector.round(pos_)
 	local dir = vector.new(dir_)
 	local cur = nil
@@ -89,14 +87,14 @@ function boost_cart:get_rail_direction(pos_, dir_, ctrl, old_switch)
 			right_check = false
 		end
 		if ctrl.left and left_check then
-			cur = boost_cart:check_front_up_down(pos, left, true)
+			cur = boost_cart:check_front_up_down(pos, left, true, railtype)
 			if cur then
 				return cur, 1
 			end
 			left_check = false
 		end
 		if ctrl.right and right_check then
-			cur = boost_cart:check_front_up_down(pos, right, true)
+			cur = boost_cart:check_front_up_down(pos, right, true, railtype)
 			if cur then
 				return cur, 2
 			end
@@ -105,14 +103,14 @@ function boost_cart:get_rail_direction(pos_, dir_, ctrl, old_switch)
 	end
 	
 	-- Normal
-	cur = boost_cart:check_front_up_down(pos, dir)
+	cur = boost_cart:check_front_up_down(pos, dir, false, railtype)
 	if cur then
 		return cur
 	end
 	
 	-- Left, if not already checked
 	if left_check then
-		cur = boost_cart:check_front_up_down(pos, left, true)
+		cur = boost_cart:check_front_up_down(pos, left, true, railtype)
 		if cur then
 			return cur
 		end
@@ -120,7 +118,7 @@ function boost_cart:get_rail_direction(pos_, dir_, ctrl, old_switch)
 	
 	-- Right, if not already checked
 	if right_check then
-		cur = boost_cart:check_front_up_down(pos, right, true)
+		cur = boost_cart:check_front_up_down(pos, right, true, railtype)
 		if cur then
 			return cur
 		end
