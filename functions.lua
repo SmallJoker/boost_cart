@@ -27,7 +27,15 @@ function boost_cart:is_rail(pos)
 		local vi = area:indexp(pos)
 		node = minetest.get_name_from_content_id(data[vi])
 	end
-	return minetest.get_item_group(node, "rail") ~= 0
+	if minetest.get_item_group(node, "rail") == 0 then
+		return false
+	end
+	local group = minetest.get_item_group(node, "connect_to_raillike")
+	if self.railtype == nil then
+		self.railtype = group
+		return true
+	end
+	return group == self.railtype
 end
 
 function boost_cart:check_front_up_down(pos, dir, onlyDown)

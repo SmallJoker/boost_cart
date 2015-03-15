@@ -30,6 +30,7 @@ boost_cart.cart = {
 	old_dir = {x=0, y=0, z=0},
 	old_pos = nil,
 	old_switch = nil,
+	railtype = nil,
 	attached_items = {}
 }
 
