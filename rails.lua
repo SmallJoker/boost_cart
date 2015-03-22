@@ -73,7 +73,7 @@ minetest.register_node(":carts:powerrail", {
 	mesecons = {
 		effector = {
 			action_on = function(pos, node)
-				minetest.get_meta(pos):set_string("cart_acceleration", "0.5")
+				boost_cart:boost_rail(pos, 0.5)
 			end,
 			
 			action_off = function(pos, node)
@@ -117,7 +117,7 @@ minetest.register_node(":carts:brakerail", {
 	mesecons = {
 		effector = {
 			action_on = function(pos, node)
-				minetest.get_meta(pos):set_string("cart_acceleration", "-0.2")
+				boost_cart:boost_rail(pos, -0.2)
 			end,
 			
 			action_off = function(pos, node)

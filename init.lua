@@ -29,7 +29,7 @@ boost_cart.cart = {
 	velocity = {x=0, y=0, z=0}, -- only used on punch
 	old_dir = {x=0, y=0, z=0},
 	old_pos = nil,
-	old_switch = nil,
+	old_switch = 0,
 	railtype = nil,
 	attached_items = {}
 }
@@ -54,7 +54,20 @@ function boost_cart.cart:on_activate(staticdata, dtime_s)
 end
 
 function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabilities, direction)
+	local pos = self.object:getpos()
+	if not self.railtype then
+		local node = minetest.get_node(vector.floor(pos)).name
+		self.railtype = minetest.get_item_group(node, "connect_to_raillike")
+	end
+	
 	if not puncher or not puncher:is_player() then
+		local cart_dir = boost_cart:get_rail_direction(pos, {x=1, y=0, z=0}, nil, nil, self.railtype)
+		if vector.equals(cart_dir, {x=0, y=0, z=0}) then
+			return
+		end
+		self.velocity = vector.multiply(cart_dir, 3)
+		self.old_pos = nil
+		self.punched = true
 		return
 	end
 
@@ -80,12 +93,6 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 		return
 	end
 	
-	if not self.railtype then
-		local pos = vector.floor(self.object:getpos())
-		local node = minetest.get_node(pos).name
-		self.railtype = minetest.get_item_group(node, "connect_to_raillike")
-	end
-	
 	local vel = self.object:getvelocity()
 	if puncher:get_player_name() == self.driver then
 		if math.abs(vel.x + vel.z) > 7 then
@@ -95,7 +102,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	
 	local punch_dir = boost_cart:velocity_to_dir(puncher:get_look_dir())
 	punch_dir.y = 0
-	local cart_dir = boost_cart:get_rail_direction(self.object:getpos(), punch_dir, nil, self.railtype)
+	local cart_dir = boost_cart:get_rail_direction(pos, punch_dir, nil, nil, self.railtype)
 	if vector.equals(cart_dir, {x=0, y=0, z=0}) then
 		return
 	end
