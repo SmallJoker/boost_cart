@@ -117,9 +117,11 @@ end
 
 function boost_cart.cart:on_step(dtime)
 	local vel = self.object:getvelocity()
+	local update = {}
 	if self.punched then
 		vel = vector.add(vel, self.velocity)
 		self.object:setvelocity(vel)
+		self.old_dir.y = 0
 	elseif vector.equals(vel, {x=0, y=0, z=0}) then
 		return
 	end
@@ -134,7 +136,6 @@ function boost_cart.cart:on_step(dtime)
 		end
 	end
 	
-	local update = {}
 	local ctrl, player = nil, nil
 	if self.driver then
 		player = minetest.get_player_by_name(self.driver)
