@@ -13,8 +13,16 @@ function vector.floor(v)
 	}
 end
 
+function vector.tostr(v)
+	return string.format("{%.3f; %.3f; %.3f}", v.x, v.y, v.z)
+end
+
 dofile(boost_cart.modpath.."/functions.lua")
 dofile(boost_cart.modpath.."/rails.lua")
+
+if mesecon then
+	dofile(boost_cart.modpath.."/detector.lua")
+end
 
 boost_cart.cart = {
 	physical = false,
@@ -222,6 +230,10 @@ function boost_cart.cart:on_step(dtime)
 		end
 		
 		new_acc = vector.multiply(dir, acc)
+	end
+	
+	if mesecon then
+		boost_cart:signal_detector_rail(vector.floor(pos))
 	end
 	
 	self.object:setacceleration(new_acc)
