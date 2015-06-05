@@ -19,20 +19,9 @@ if minetest.get_modpath("moreores") then
 	-- Moreores' copper rail
 	minetest.register_alias("carts:copperrail", "moreores:copper_rail")
 else
-	minetest.register_node(":carts:copperrail", {
+	boost_cart:register_rail(":carts:copperrail", {
 		description = "Copper rail",
-		drawtype = "raillike",
 		tiles = {"carts_rail_cp.png", "carts_rail_curved_cp.png", "carts_rail_t_junction_cp.png", "carts_rail_crossing_cp.png"},
-		inventory_image = "carts_rail_cp.png",
-		wield_image = "carts_rail_cp.png",
-		paramtype = "light",
-		is_ground_content = true,
-		walkable = false,
-		selection_box = {
-			type = "fixed",
-			-- but how to specify the dimensions for curved and sideways rails?
-			fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
-		},
 		groups = {dig_immediate = 2, attached_node = 1, rail = 1, connect_to_raillike = 1},
 	})
 
@@ -48,34 +37,22 @@ end
 
 -- Speed up
 
-minetest.register_node(":carts:powerrail", {
+boost_cart:register_rail(":carts:powerrail", {
 	description = "Powered rail",
-	drawtype = "raillike",
 	tiles = {"carts_rail_pwr.png", "carts_rail_curved_pwr.png", "carts_rail_t_junction_pwr.png", "carts_rail_crossing_pwr.png"},
-	inventory_image = "carts_rail_pwr.png",
-	wield_image = "carts_rail_pwr.png",
-	paramtype = "light",
-	is_ground_content = true,
-	walkable = false,
-	selection_box = {
-		type = "fixed",
-		-- but how to specify the dimensions for curved and sideways rails?
-		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
-	},
-	groups = {dig_immediate = 2, attached_node = 1, rail = 1, connect_to_raillike = 1},
-	
+
 	after_place_node = function(pos, placer, itemstack)
 		if not mesecon then
 			minetest.get_meta(pos):set_string("cart_acceleration", "0.5")
 		end
 	end,
-	
+
 	mesecons = {
 		effector = {
 			action_on = function(pos, node)
 				boost_cart:boost_rail(pos, 0.5)
 			end,
-			
+
 			action_off = function(pos, node)
 				minetest.get_meta(pos):set_string("cart_acceleration", "0")
 			end,
@@ -92,34 +69,22 @@ minetest.register_craft({
 	}
 })
 
-minetest.register_node(":carts:brakerail", {
+boost_cart:register_rail(":carts:brakerail", {
 	description = "Brake rail",
-	drawtype = "raillike",
 	tiles = {"carts_rail_brk.png", "carts_rail_curved_brk.png", "carts_rail_t_junction_brk.png", "carts_rail_crossing_brk.png"},
-	inventory_image = "carts_rail_brk.png",
-	wield_image = "carts_rail_brk.png",
-	paramtype = "light",
-	is_ground_content = true,
-	walkable = false,
-	selection_box = {
-		type = "fixed",
-		-- but how to specify the dimensions for curved and sideways rails?
-		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
-	},
-	groups = {dig_immediate = 2, attached_node = 1, rail = 1, connect_to_raillike = 1},
-	
+
 	after_place_node = function(pos, placer, itemstack)
 		if not mesecon then
 			minetest.get_meta(pos):set_string("cart_acceleration", "-0.2")
 		end
 	end,
-	
+
 	mesecons = {
 		effector = {
 			action_on = function(pos, node)
 				boost_cart:boost_rail(pos, -0.2)
 			end,
-			
+
 			action_off = function(pos, node)
 				minetest.get_meta(pos):set_string("cart_acceleration", "0")
 			end,

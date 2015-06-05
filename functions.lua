@@ -39,7 +39,7 @@ end
 function boost_cart:check_front_up_down(pos, dir_, check_down, railtype)
 	local dir = vector.new(dir_)
 	local cur = nil
-	
+
 	-- Front
 	dir.y = 0
 	cur = vector.add(pos, dir)
@@ -67,7 +67,7 @@ function boost_cart:get_rail_direction(pos_, dir, ctrl, old_switch, railtype)
 	local pos = vector.round(pos_)
 	local cur = nil
 	local left_check, right_check = true, true
-	
+
 	-- Check left and right
 	local left = {x=0, y=0, z=0}
 	local right = {x=0, y=0, z=0}
@@ -78,7 +78,7 @@ function boost_cart:get_rail_direction(pos_, dir, ctrl, old_switch, railtype)
 		left.z = dir.x
 		right.z = -dir.x
 	end
-	
+
 	if ctrl then
 		if old_switch == 1 then
 			left_check = false
@@ -100,13 +100,13 @@ function boost_cart:get_rail_direction(pos_, dir, ctrl, old_switch, railtype)
 			right_check = true
 		end
 	end
-	
+
 	-- Normal
 	cur = boost_cart:check_front_up_down(pos, dir, true, railtype)
 	if cur then
 		return cur
 	end
-	
+
 	-- Left, if not already checked
 	if left_check then
 		cur = boost_cart:check_front_up_down(pos, left, false, railtype)
@@ -114,7 +114,7 @@ function boost_cart:get_rail_direction(pos_, dir, ctrl, old_switch, railtype)
 			return cur
 		end
 	end
-	
+
 	-- Right, if not already checked
 	if right_check then
 		cur = boost_cart:check_front_up_down(pos, right, false, railtype)
@@ -122,7 +122,7 @@ function boost_cart:get_rail_direction(pos_, dir, ctrl, old_switch, railtype)
 			return cur
 		end
 	end
-	
+
 	-- Backwards
 	if not old_switch then
 		cur = boost_cart:check_front_up_down(pos, {
@@ -134,7 +134,7 @@ function boost_cart:get_rail_direction(pos_, dir, ctrl, old_switch, railtype)
 			return cur
 		end
 	end
-	
+
 	return {x=0, y=0, z=0}
 end
 
@@ -147,4 +147,27 @@ function boost_cart:boost_rail(pos, amount)
 			obj_:get_luaentity():on_punch()
 		end
 	end
+end
+
+function boost_cart:register_rail(name, def)
+	local def_default = {
+		drawtype = "raillike",
+		paramtype = "light",
+		sunlight_propagates = true,
+		is_ground_content = true,
+		walkable = false,
+		selection_box = {
+			type = "fixed",
+			fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
+		}
+	}
+	for k, v in pairs(def_default) do
+		def[k] = v
+	end
+	if not def.inventory_image then
+		def.wield_image = def.tiles[1]
+		def.inventory_image = def.tiles[1]
+	end
+
+	minetest.register_node(name, def)
 end

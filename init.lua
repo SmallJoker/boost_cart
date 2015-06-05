@@ -13,10 +13,6 @@ function vector.floor(v)
 	}
 end
 
-function vector.tostr(v)
-	return string.format("{%.3f; %.3f; %.3f}", v.x, v.y, v.z)
-end
-
 dofile(boost_cart.modpath.."/functions.lua")
 dofile(boost_cart.modpath.."/rails.lua")
 
