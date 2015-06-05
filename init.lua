@@ -20,6 +20,11 @@ if mesecon then
 	dofile(boost_cart.modpath.."/detector.lua")
 end
 
+-- Support for non-default games
+if not default.player_attached then
+	default.player_attached = {}
+end
+
 boost_cart.cart = {
 	physical = false,
 	collisionbox = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5},
