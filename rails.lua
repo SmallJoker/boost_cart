@@ -40,7 +40,8 @@ end
 boost_cart:register_rail(":carts:powerrail", {
 	description = "Powered rail",
 	tiles = {"carts_rail_pwr.png", "carts_rail_curved_pwr.png", "carts_rail_t_junction_pwr.png", "carts_rail_crossing_pwr.png"},
-
+	groups = {dig_immediate = 2, attached_node = 1, rail = 1, connect_to_raillike = 1},
+	
 	after_place_node = function(pos, placer, itemstack)
 		if not mesecon then
 			minetest.get_meta(pos):set_string("cart_acceleration", "0.5")
@@ -72,6 +73,7 @@ minetest.register_craft({
 boost_cart:register_rail(":carts:brakerail", {
 	description = "Brake rail",
 	tiles = {"carts_rail_brk.png", "carts_rail_curved_brk.png", "carts_rail_t_junction_brk.png", "carts_rail_crossing_brk.png"},
+	groups = {dig_immediate = 2, attached_node = 1, rail = 1, connect_to_raillike = 1},
 
 	after_place_node = function(pos, placer, itemstack)
 		if not mesecon then
