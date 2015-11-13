@@ -5,6 +5,11 @@ boost_cart = {}
 boost_cart.modpath = minetest.get_modpath("boost_cart")
 boost_cart.speed_max = 10
 
+if not boost_cart.modpath then
+	error("\nWrong mod directory name! Please change it to 'boost_cart'.\n" ..
+			"See also: http://dev.minetest.net/Installing_Mods")
+end
+
 function vector.floor(v)
 	return {
 		x = math.floor(v.x),
