@@ -6,6 +6,25 @@ function boost_cart:get_sign(z)
 	end
 end
 
+function boost_cart:manage_attachment(player, status, obj)
+	if not player then
+		return
+	end
+	local player_name = player:get_player_name()
+	if default.player_attached[player_name] == status then
+		return
+	end
+	default.player_attached[player_name] = status
+
+	if status then
+		player:set_attach(obj, "", {x=0, y=6, z=0}, {x=0, y=0, z=0})
+		player:set_eye_offset({x=0, y=-4, z=0},{x=0, y=-4, z=0})
+	else
+		player:set_detach()
+		player:set_eye_offset({x=0, y=0, z=0},{x=0, y=0, z=0})
+	end
+end
+
 function boost_cart:velocity_to_dir(v)
 	if math.abs(v.x) > math.abs(v.z) then
 		return {x=boost_cart:get_sign(v.x), y=boost_cart:get_sign(v.y), z=0}

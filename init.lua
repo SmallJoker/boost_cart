@@ -55,11 +55,10 @@ function boost_cart.cart:on_rightclick(clicker)
 	local player_name = clicker:get_player_name()
 	if self.driver and player_name == self.driver then
 		self.driver = nil
-		clicker:set_detach()
+		boost_cart:manage_attachment(clicker, false)
 	elseif not self.driver then
 		self.driver = player_name
-		default.player_attached[player_name] = true
-		clicker:set_attach(self.object, "", {x=0, y=3, z=0}, {x=0, y=0, z=0})
+		boost_cart:manage_attachment(clicker, true, self.object)
 	end
 end
 
@@ -90,11 +89,8 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 			if self.old_pos then
 				self.object:setpos(self.old_pos)
 			end
-			default.player_attached[self.driver] = nil
 			local player = minetest.get_player_by_name(self.driver)
-			if player then
-				player:set_detach()
-			end
+			boost_cart:manage_attachment(player, false)
 		end
 		for _,obj_ in ipairs(self.attached_items) do
 			if obj_ then
