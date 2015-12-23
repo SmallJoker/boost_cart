@@ -98,8 +98,11 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 			end
 		end
 
+		local leftover = puncher:get_inventory():add_item("main", "carts:cart")
+		if not leftover:is_empty() then
+			minetest.add_item(self.object:getpos(), leftover)
+		end
 		self.object:remove()
-		puncher:get_inventory():add_item("main", "carts:cart")
 		return
 	end
 
