@@ -1,9 +1,12 @@
--- TODO:
---  Add a todo list
 
 boost_cart = {}
 boost_cart.modpath = minetest.get_modpath("boost_cart")
+
+-- Maximal speed of the cart in m/s
 boost_cart.speed_max = 10
+-- Set to nil to disable punching the cart from inside
+boost_cart.punch_speed_min = 7
+
 
 if not boost_cart.modpath then
 	error("\nWrong mod directory name! Please change it to 'boost_cart'.\n" ..
@@ -64,6 +67,21 @@ end
 
 function boost_cart.cart:on_activate(staticdata, dtime_s)
 	self.object:set_armor_groups({immortal=1})
+	if string.sub(staticdata, 1, string.len("return")) ~= "return" then
+		return
+	end
+	return
+	--[[local data = minetest.deserialize(staticdata)
+	if not data or type(data) ~= "table" then
+		return
+	end
+	self.railtype = data.railtype]]
+end
+
+function boost_cart.cart:get_staticdata()
+	return minetest.serialize({
+		railtype = self.railtype
+	})
 end
 
 function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabilities, direction)
@@ -106,9 +124,10 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 		return
 	end
 
+
 	local vel = self.object:getvelocity()
 	if puncher:get_player_name() == self.driver then
-		if math.abs(vel.x + vel.z) > 7 then
+		if math.abs(vel.x + vel.z) > (boost_cart.punch_speed_min or -1) then
 			return
 		end
 	end
