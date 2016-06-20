@@ -70,12 +70,11 @@ function boost_cart.cart:on_activate(staticdata, dtime_s)
 	if string.sub(staticdata, 1, string.len("return")) ~= "return" then
 		return
 	end
-	return
-	--[[local data = minetest.deserialize(staticdata)
+	local data = minetest.deserialize(staticdata)
 	if not data or type(data) ~= "table" then
 		return
 	end
-	self.railtype = data.railtype]]
+	self.railtype = data.railtype
 end
 
 function boost_cart.cart:get_staticdata()
@@ -87,7 +86,8 @@ end
 function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabilities, direction)
 	local pos = self.object:getpos()
 	if not self.railtype then
-		local node = minetest.get_node(vector.floor(pos)).name
+		local bar = vector.floor(vector.add(pos, 0.1))
+		local node = minetest.get_node(bar).name
 		self.railtype = minetest.get_item_group(node, "connect_to_raillike")
 	end
 
