@@ -4,7 +4,7 @@ boost_cart.modpath = minetest.get_modpath("boost_cart")
 
 -- Maximal speed of the cart in m/s
 boost_cart.speed_max = 10
--- Set to nil to disable punching the cart from inside
+-- Set to nil to disable punching the cart from inside (min = -1)
 boost_cart.punch_speed_min = 7
 
 
@@ -103,6 +103,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	end
 
 	if puncher:get_player_control().sneak then
+		-- Pick up cart: Drop all attachments
 		if self.driver then
 			if self.old_pos then
 				self.object:setpos(self.old_pos)
@@ -124,10 +125,9 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 		return
 	end
 
-
 	local vel = self.object:getvelocity()
 	if puncher:get_player_name() == self.driver then
-		if math.abs(vel.x + vel.z) > (boost_cart.punch_speed_min or -1) then
+		if math.abs(vel.x + vel.z) > boost_cart.punch_speed_min then
 			return
 		end
 	end
@@ -162,40 +162,44 @@ function boost_cart.cart:on_step(dtime)
 		return
 	end
 
-	local dir, last_switch = nil, nil
+	-- dir:         New moving direction of the cart
+	-- last_switch: Currently pressed L/R key, used to ignore the key on the next rail node
+	local dir, last_switch
 	local pos = self.object:getpos()
+
 	if self.old_pos and not self.punched then
 		local flo_pos = vector.floor(pos)
 		local flo_old = vector.floor(self.old_pos)
 		if vector.equals(flo_pos, flo_old) then
+			-- Do not check one node multiple times
 			return
 		end
 	end
 
-	local ctrl, player = nil, nil
+	local ctrl, player
+
+	-- Get player controls
 	if self.driver then
 		player = minetest.get_player_by_name(self.driver)
 		if player then
 			ctrl = player:get_player_control()
 		end
 	end
+
 	if self.old_pos then
-		local diff = vector.subtract(self.old_pos, pos)
-		for _,v in ipairs({"x","y","z"}) do
-			if math.abs(diff[v]) > 1.1 then
-				local expected_pos = vector.add(self.old_pos, self.old_dir)
-				dir, last_switch = boost_cart:get_rail_direction(pos, self.old_dir, ctrl, self.old_switch, self.railtype)
-				if vector.equals(dir, {x=0, y=0, z=0}) then
-					dir = false
-					pos = vector.new(expected_pos)
-					update.pos = true
-				end
-				break
-			end
+		-- Detection for "skipping" nodes
+		local expected_pos = vector.add(self.old_pos, self.old_dir)
+		local found_path = boost_cart:pathfinder(pos, expected_pos, self.old_dir, ctrl, self.old_switch, self.railtype)
+
+		if not found_path then
+			-- No rail found: reset back to the expected position
+			pos = expected_pos
+			update.pos = true
 		end
 	end
 
 	if vel.y == 0 then
+		-- Stop cart completely (do not swing)
 		for _,v in ipairs({"x", "z"}) do
 			if vel[v] ~= 0 and math.abs(vel[v]) < 0.9 then
 				vel[v] = 0
@@ -213,6 +217,8 @@ function boost_cart.cart:on_step(dtime)
 	local new_acc = {x=0, y=0, z=0}
 	if vector.equals(dir, {x=0, y=0, z=0}) then
 		vel = {x=0, y=0, z=0}
+		pos = vector.round(pos)
+		update.pos = true
 		update.vel = true
 	else
 		-- If the direction changed
@@ -248,7 +254,8 @@ function boost_cart.cart:on_step(dtime)
 					end
 				end
 			end
-			acc = acc + (speed_mod * 8)
+			-- Try to make it similar to the original carts mod
+			acc = acc + (speed_mod * 10)
 		else
 			acc = acc - 0.4
 			-- Handbrake

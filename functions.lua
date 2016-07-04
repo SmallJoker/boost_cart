@@ -157,6 +157,28 @@ function boost_cart:get_rail_direction(pos_, dir, ctrl, old_switch, railtype)
 	return {x=0, y=0, z=0}
 end
 
+function boost_cart:pathfinder(pos_, expected_pos, old_dir, ctrl, pf_switch, railtype)
+	local pos = vector.round(pos_)
+	local pf_pos = vector.round(expected_pos)
+	local pf_dir = vector.new(old_dir)
+
+	for i = 1, 3 do
+		pf_dir, pf_switch = boost_cart:get_rail_direction(pf_pos, pf_dir, ctrl, pf_switch, railtype)
+		if vector.equals(pf_dir, {x=0, y=0, z=0}) then
+			-- No way forwards
+			return false
+		end
+
+		pf_pos = vector.add(pf_pos, pf_dir)
+		if vector.equals(pf_pos, pos) then
+			-- Success! Cart moved on correctly
+			return true
+		end
+	end
+	-- Cart not found
+	return false
+end
+
 function boost_cart:boost_rail(pos, amount)
 	minetest.get_meta(pos):set_string("cart_acceleration", tostring(amount))
 	for _,obj_ in ipairs(minetest.get_objects_inside_radius(pos, 0.5)) do
