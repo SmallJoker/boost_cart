@@ -168,8 +168,8 @@ function boost_cart.cart:on_step(dtime)
 	local pos = self.object:getpos()
 
 	if self.old_pos and not self.punched then
-		local flo_pos = vector.floor(pos)
-		local flo_old = vector.floor(self.old_pos)
+		local flo_pos = vector.round(pos)
+		local flo_old = vector.round(self.old_pos)
 		if vector.equals(flo_pos, flo_old) then
 			-- Do not check one node multiple times
 			return
@@ -268,21 +268,23 @@ function boost_cart.cart:on_step(dtime)
 	end
 
 	if mesecon then
-		boost_cart:signal_detector_rail(vector.floor(pos))
+		boost_cart:signal_detector_rail(vector.round(pos))
 	end
-
-	self.object:setacceleration(new_acc)
-	self.old_pos = vector.new(pos)
-	self.old_dir = vector.new(dir)
-	self.old_switch = last_switch
 
 	-- Limits
 	for _,v in ipairs({"x","y","z"}) do
 		if math.abs(vel[v]) > max_vel then
 			vel[v] = boost_cart:get_sign(vel[v]) * max_vel
+			new_acc[v] = 0
 			update.vel = true
 		end
 	end
+	
+	self.object:setacceleration(new_acc)
+	self.old_pos = vector.new(pos)
+	self.old_dir = vector.new(dir)
+	self.old_switch = last_switch
+
 
 	if self.punched then
 		-- Collect dropped items
