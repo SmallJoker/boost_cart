@@ -249,8 +249,16 @@ function boost_cart.cart:on_step(dtime)
 		-- Slow down or speed up..
 		local acc = dir.y * -1.8
 
-		local speed_mod = tonumber(minetest.get_meta(pos):get_string("cart_acceleration"))
-		if speed_mod and speed_mod ~= 0 then
+		local speed_mod_string = minetest.get_meta(pos):get_string("cart_acceleration")
+		local speed_mod = tonumber(speed_mod_string)
+		if speed_mod_string == "halt" then
+			vel = {x=0, y=0, z=0}
+			acc = {x=0, y=0, z=0}
+			dir = {x=0, y=0, z=0}
+			pos = vector.round(pos)
+			update.pos = true
+			update.vel = true
+		elseif speed_mod and speed_mod ~= 0 then
 			if speed_mod > 0 then
 				for _,v in ipairs({"x","y","z"}) do
 					if math.abs(vel[v]) >= max_vel then

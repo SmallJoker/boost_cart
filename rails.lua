@@ -102,3 +102,33 @@ minetest.register_craft({
 		{"default:steel_ingot", "default:coal_lump", "default:steel_ingot"},
 	}
 })
+
+boost_cart:register_rail(":boost_cart:startstoprail", {
+	description = "Start-stop rail",
+	tiles = {"carts_rail_ss.png", "carts_rail_curved_ss.png", "carts_rail_t_junction_ss.png", "carts_rail_crossing_ss.png"},
+	groups = {dig_immediate = 2, attached_node = 1, rail = 1, connect_to_raillike = 1},
+
+	after_place_node = function(pos, placer, itemstack)
+		if not mesecon then
+			minetest.get_meta(pos):set_string("cart_acceleration", "halt")
+		end
+	end,
+
+	mesecons = {
+		effector = {
+			action_on = function(pos, node)
+				boost_cart:boost_rail(pos, 0.5)
+			end,
+
+			action_off = function(pos, node)
+				minetest.get_meta(pos):set_string("cart_acceleration", "halt")
+			end,
+		},
+	},
+})
+
+minetest.register_craft({
+	type = "shapeless",
+	output = "boost_cart:startstoprail 2",
+	recipe = {"carts:powerrail", "carts:brakerail"},
+})
