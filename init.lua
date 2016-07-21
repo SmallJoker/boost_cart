@@ -44,7 +44,7 @@ boost_cart.cart = {
 	driver = nil,
 	punched = false, -- used to re-send velocity and position
 	velocity = {x=0, y=0, z=0}, -- only used on punch
-	old_dir = {x=0, y=0, z=0},
+	old_dir = {x=1, y=0, z=0}, -- random value to start the cart on punch
 	old_pos = nil,
 	old_switch = 0,
 	railtype = nil,
@@ -75,11 +75,15 @@ function boost_cart.cart:on_activate(staticdata, dtime_s)
 		return
 	end
 	self.railtype = data.railtype
+	if data.old_dir then
+		self.old_dir = data.old_dir
+	end
 end
 
 function boost_cart.cart:get_staticdata()
 	return minetest.serialize({
-		railtype = self.railtype
+		railtype = self.railtype,
+		old_dir = self.old_dir
 	})
 end
 
@@ -92,7 +96,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	end
 
 	if not puncher or not puncher:is_player() then
-		local cart_dir = boost_cart:get_rail_direction(pos, {x=1, y=0, z=0}, nil, nil, self.railtype)
+		local cart_dir = boost_cart:get_rail_direction(pos, self.old_dir, nil, nil, self.railtype)
 		if vector.equals(cart_dir, {x=0, y=0, z=0}) then
 			return
 		end
@@ -147,6 +151,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	local f = 3 * (time_from_last_punch / punch_interval)
 
 	self.velocity = vector.multiply(cart_dir, f)
+	self.old_dir = cart_dir
 	self.old_pos = nil
 	self.punched = true
 end
@@ -282,7 +287,9 @@ function boost_cart.cart:on_step(dtime)
 	
 	self.object:setacceleration(new_acc)
 	self.old_pos = vector.new(pos)
-	self.old_dir = vector.new(dir)
+	if not vector.equals(dir, {x=0, y=0, z=0}) then
+		self.old_dir = vector.new(dir)
+	end
 	self.old_switch = last_switch
 
 
@@ -298,6 +305,7 @@ function boost_cart.cart:on_step(dtime)
 			end
 		end
 		self.punched = false
+		update.vel = true -- update player animation
 	end
 
 	if not (update.vel or update.pos) then
@@ -305,11 +313,11 @@ function boost_cart.cart:on_step(dtime)
 	end
 
 	local yaw = 0
-	if dir.x < 0 then
+	if self.old_dir.x < 0 then
 		yaw = 0.5
-	elseif dir.x > 0 then
+	elseif self.old_dir.x > 0 then
 		yaw = 1.5
-	elseif dir.z < 0 then
+	elseif self.old_dir.z < 0 then
 		yaw = 1
 	end
 	self.object:setyaw(yaw * math.pi)
