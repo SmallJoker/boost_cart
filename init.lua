@@ -45,6 +45,7 @@ boost_cart.cart = {
 	punched = false, -- used to re-send velocity and position
 	velocity = {x=0, y=0, z=0}, -- only used on punch
 	old_dir = {x=0, y=0, z=0},
+	last_nonzero_dir = {x=1, y=0, z=0},
 	old_pos = nil,
 	old_switch = 0,
 	railtype = nil,
@@ -75,11 +76,15 @@ function boost_cart.cart:on_activate(staticdata, dtime_s)
 		return
 	end
 	self.railtype = data.railtype
+	if data.last_nonzero_dir then
+		self.last_nonzero_dir = data.last_nonzero_dir
+	end
 end
 
 function boost_cart.cart:get_staticdata()
 	return minetest.serialize({
-		railtype = self.railtype
+		railtype = self.railtype,
+		last_nonzero_dir = self.last_nonzero_dir,
 	})
 end
 
@@ -92,7 +97,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 	end
 
 	if not puncher or not puncher:is_player() then
-		local cart_dir = boost_cart:get_rail_direction(pos, {x=1, y=0, z=0}, nil, nil, self.railtype)
+		local cart_dir = boost_cart:get_rail_direction(pos, self.last_nonzero_dir, nil, nil, self.railtype)
 		if vector.equals(cart_dir, {x=0, y=0, z=0}) then
 			return
 		end
@@ -283,6 +288,9 @@ function boost_cart.cart:on_step(dtime)
 	self.object:setacceleration(new_acc)
 	self.old_pos = vector.new(pos)
 	self.old_dir = vector.new(dir)
+	if self.old_dir.x ~= 0 or self.old_dir.y ~= 0 or self.old_dir.z ~= 0 then
+		self.last_nonzero_dir = self.old_dir
+	end
 	self.old_switch = last_switch
 
 
