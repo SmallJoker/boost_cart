@@ -194,7 +194,9 @@ function boost_cart.cart:on_step(dtime)
 	if self.old_pos then
 		-- Detection for "skipping" nodes
 		local expected_pos = vector.add(self.old_pos, self.old_dir)
-		local found_path = boost_cart:pathfinder(pos, expected_pos, self.old_dir, ctrl, self.old_switch, self.railtype)
+		local found_path = boost_cart:pathfinder(
+			pos, expected_pos, self.old_dir, ctrl, self.old_switch, self.railtype
+		)
 
 		if not found_path then
 			-- No rail found: reset back to the expected position
@@ -203,20 +205,12 @@ function boost_cart.cart:on_step(dtime)
 		end
 	end
 
-	if vel.y == 0 then
-		-- Stop cart completely (do not swing)
-		for _,v in ipairs({"x", "z"}) do
-			if vel[v] ~= 0 and math.abs(vel[v]) < 0.9 then
-				vel[v] = 0
-				update.vel = true
-			end
-		end
-	end
-
 	local cart_dir = boost_cart:velocity_to_dir(vel)
 	local max_vel = boost_cart.speed_max
 	if not dir then
-		dir, last_switch = boost_cart:get_rail_direction(pos, cart_dir, ctrl, self.old_switch, self.railtype)
+		dir, last_switch = boost_cart:get_rail_direction(
+			pos, cart_dir, ctrl, self.old_switch, self.railtype
+		)
 	end
 
 	local new_acc = {x=0, y=0, z=0}
@@ -253,27 +247,32 @@ function boost_cart.cart:on_step(dtime)
 		local speed_mod = tonumber(speed_mod_string)
 		if speed_mod_string == "halt" then
 			vel = {x=0, y=0, z=0}
-			acc = {x=0, y=0, z=0}
-			dir = {x=0, y=0, z=0}
+			acc = 0
 			pos = vector.round(pos)
 			update.pos = true
 			update.vel = true
 		elseif speed_mod and speed_mod ~= 0 then
-			if speed_mod > 0 then
-				for _,v in ipairs({"x","y","z"}) do
-					if math.abs(vel[v]) >= max_vel then
-						speed_mod = 0
-						break
-					end
-				end
-			end
 			-- Try to make it similar to the original carts mod
 			acc = acc + (speed_mod * 10)
 		else
 			acc = acc - 0.4
 			-- Handbrake
-			if ctrl and ctrl.down and math.abs(vel.x + vel.z) > 1.2 then
+			if ctrl and ctrl.down then
 				acc = acc - 1.2
+			end
+		end
+
+		if self.old_dir.y == 0 and not self.punched then
+			-- Stop the cart swing between two rail parts (handbrake)
+			if vector.equals(vector.multiply(self.old_dir, -1), dir) then
+				vel = {x=0, y=0, z=0}
+				acc = 0
+				if self.old_pos then
+					pos = vector.new(self.old_pos)
+					update.pos = true
+				end
+				dir = vector.new(self.old_dir)
+				update.vel = true
 			end
 		end
 
@@ -292,7 +291,7 @@ function boost_cart.cart:on_step(dtime)
 			update.vel = true
 		end
 	end
-	
+
 	self.object:setacceleration(new_acc)
 	self.old_pos = vector.new(pos)
 	if not vector.equals(dir, {x=0, y=0, z=0}) then
@@ -308,6 +307,7 @@ function boost_cart.cart:on_step(dtime)
 					obj_:get_luaentity() and
 					not obj_:get_luaentity().physical_state and
 					obj_:get_luaentity().name == "__builtin:item" then
+
 				obj_:set_attach(self.object, "", {x=0, y=0, z=0}, {x=0, y=0, z=0})
 				self.attached_items[#self.attached_items + 1] = obj_
 			end
