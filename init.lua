@@ -24,7 +24,7 @@ end
 dofile(boost_cart.modpath.."/functions.lua")
 dofile(boost_cart.modpath.."/rails.lua")
 
-if mesecon then
+if minetest.global_exists(mesecon) then
 	dofile(boost_cart.modpath.."/detector.lua")
 end
 
