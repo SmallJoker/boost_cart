@@ -24,7 +24,8 @@ end
 dofile(boost_cart.modpath.."/functions.lua")
 dofile(boost_cart.modpath.."/rails.lua")
 
-if minetest.global_exists(mesecon) then
+local HAVE_MESECONS_ENABLED = minetest.global_exists("mesecon")
+if HAVE_MESECONS_ENABLED then
 	dofile(boost_cart.modpath.."/detector.lua")
 end
 
@@ -279,7 +280,7 @@ function boost_cart.cart:on_step(dtime)
 		new_acc = vector.multiply(dir, acc)
 	end
 
-	if mesecon then
+	if HAVE_MESECONS_ENABLED then
 		boost_cart:signal_detector_rail(vector.round(pos))
 	end
 
