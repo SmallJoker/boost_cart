@@ -6,10 +6,11 @@ function boost_cart:get_sign(z)
 	end
 end
 
-function boost_cart:manage_attachment(player, status, obj)
+function boost_cart:manage_attachment(player, obj)
 	if not player then
 		return
 	end
+	local status = obj ~= nil
 	local player_name = player:get_player_name()
 	if default.player_attached[player_name] == status then
 		return

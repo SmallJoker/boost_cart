@@ -4,8 +4,8 @@ boost_cart.modpath = minetest.get_modpath("boost_cart")
 
 -- Maximal speed of the cart in m/s
 boost_cart.speed_max = 10
--- Set to nil to disable punching the cart from inside (min = -1)
-boost_cart.punch_speed_min = 7
+-- Set to -1 to disable punching the cart from inside
+boost_cart.punch_speed_max = 7
 
 
 if not boost_cart.modpath then
@@ -59,10 +59,10 @@ function boost_cart.cart:on_rightclick(clicker)
 	local player_name = clicker:get_player_name()
 	if self.driver and player_name == self.driver then
 		self.driver = nil
-		boost_cart:manage_attachment(clicker, false)
+		boost_cart:manage_attachment(clicker, nil)
 	elseif not self.driver then
 		self.driver = player_name
-		boost_cart:manage_attachment(clicker, true, self.object)
+		boost_cart:manage_attachment(clicker, self.object)
 	end
 end
 
@@ -91,8 +91,7 @@ end
 function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabilities, direction)
 	local pos = self.object:getpos()
 	if not self.railtype then
-		local bar = vector.floor(vector.add(pos, 0.1))
-		local node = minetest.get_node(bar).name
+		local node = minetest.get_node(pos).name
 		self.railtype = minetest.get_item_group(node, "connect_to_raillike")
 	end
 
@@ -102,7 +101,6 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 			return
 		end
 		self.velocity = vector.multiply(cart_dir, 3)
-		self.old_pos = nil
 		self.punched = true
 		return
 	end
@@ -114,7 +112,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 				self.object:setpos(self.old_pos)
 			end
 			local player = minetest.get_player_by_name(self.driver)
-			boost_cart:manage_attachment(player, false)
+			boost_cart:manage_attachment(player, nil)
 		end
 		for _,obj_ in ipairs(self.attached_items) do
 			if obj_ then
@@ -132,7 +130,7 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 
 	local vel = self.object:getvelocity()
 	if puncher:get_player_name() == self.driver then
-		if math.abs(vel.x + vel.z) > boost_cart.punch_speed_min then
+		if math.abs(vel.x + vel.z) > boost_cart.punch_speed_max then
 			return
 		end
 	end
@@ -153,7 +151,6 @@ function boost_cart.cart:on_punch(puncher, time_from_last_punch, tool_capabiliti
 
 	self.velocity = vector.multiply(cart_dir, f)
 	self.old_dir = cart_dir
-	self.old_pos = nil
 	self.punched = true
 end
 
@@ -168,9 +165,6 @@ function boost_cart.cart:on_step(dtime)
 		return
 	end
 
-	-- dir:         New moving direction of the cart
-	-- last_switch: Currently pressed L/R key, used to ignore the key on the next rail node
-	local dir, last_switch
 	local pos = self.object:getpos()
 
 	if self.old_pos and not self.punched then
@@ -207,12 +201,12 @@ function boost_cart.cart:on_step(dtime)
 	end
 
 	local cart_dir = boost_cart:velocity_to_dir(vel)
-	local max_vel = boost_cart.speed_max
-	if not dir then
-		dir, last_switch = boost_cart:get_rail_direction(
-			pos, cart_dir, ctrl, self.old_switch, self.railtype
-		)
-	end
+
+	-- dir:         New moving direction of the cart
+	-- switch_keys: Currently pressed L/R key, used to ignore the key on the next rail node
+	local dir, switch_keys = boost_cart:get_rail_direction(
+		pos, cart_dir, ctrl, self.old_switch, self.railtype
+	)
 
 	local new_acc = {x=0, y=0, z=0}
 	if vector.equals(dir, {x=0, y=0, z=0}) then
@@ -285,6 +279,7 @@ function boost_cart.cart:on_step(dtime)
 	end
 
 	-- Limits
+	local max_vel = boost_cart.speed_max
 	for _,v in ipairs({"x","y","z"}) do
 		if math.abs(vel[v]) > max_vel then
 			vel[v] = boost_cart:get_sign(vel[v]) * max_vel
@@ -314,7 +309,7 @@ function boost_cart.cart:on_step(dtime)
 			end
 		end
 		self.punched = false
-		update.vel = true -- update player animation
+		update.vel = true
 	end
 
 	if not (update.vel or update.pos) then
@@ -359,9 +354,13 @@ minetest.register_craftitem(":carts:cart", {
 			minetest.add_entity(pointed_thing.under, "carts:cart")
 		elseif boost_cart:is_rail(pointed_thing.above) then
 			minetest.add_entity(pointed_thing.above, "carts:cart")
-		else return end
+		else
+			return
+		end
 
-		itemstack:take_item()
+		if not minetest.setting_getbool("creative_mode") then
+			itemstack:take_item()
+		end
 		return itemstack
 	end,
 })
