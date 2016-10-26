@@ -293,7 +293,7 @@ function boost_cart.cart:on_step(dtime)
 	if not vector.equals(dir, {x=0, y=0, z=0}) then
 		self.old_dir = vector.new(dir)
 	end
-	self.old_switch = last_switch
+	self.old_switch = switch_keys
 
 
 	if self.punched then
