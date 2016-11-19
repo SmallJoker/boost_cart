@@ -13,14 +13,6 @@ if not boost_cart.modpath then
 			"See also: http://dev.minetest.net/Installing_Mods")
 end
 
-function vector.floor(v)
-	return {
-		x = math.floor(v.x),
-		y = math.floor(v.y),
-		z = math.floor(v.z)
-	}
-end
-
 dofile(boost_cart.modpath.."/functions.lua")
 dofile(boost_cart.modpath.."/rails.lua")
 
@@ -195,7 +187,7 @@ function boost_cart.cart:on_step(dtime)
 
 		if not found_path then
 			-- No rail found: reset back to the expected position
-			pos = expected_pos
+			pos = vector.new(self.old_pos)
 			update.pos = true
 		end
 	end
@@ -215,23 +207,22 @@ function boost_cart.cart:on_step(dtime)
 		update.pos = true
 		update.vel = true
 	else
-		-- If the direction changed
-		if dir.x ~= 0 and self.old_dir.z ~= 0 then
-			vel.x = dir.x * math.abs(vel.z)
-			vel.z = 0
-			pos.z = math.floor(pos.z + 0.5)
-			update.pos = true
+		-- Direction change detected
+		if not vector.equals(dir, self.old_dir) then
+			vel = vector.multiply(dir, math.abs(vel.x + vel.z))
+			update.vel = true
+			if dir.y ~= self.old_dir.y then
+				pos = vector.round(pos)
+				update.pos = true
+			end
 		end
-		if dir.z ~= 0 and self.old_dir.x ~= 0 then
-			vel.z = dir.z * math.abs(vel.x)
-			vel.x = 0
+		-- Center on the rail
+		if dir.z ~= 0 and math.floor(pos.x + 0.5) ~= pos.x then
 			pos.x = math.floor(pos.x + 0.5)
 			update.pos = true
 		end
-		-- Up, down?
-		if dir.y ~= self.old_dir.y then
-			vel.y = dir.y * math.abs(vel.x + vel.z)
-			pos = vector.round(pos)
+		if dir.x ~= 0 and math.floor(pos.z + 0.5) ~= pos.z then
+			pos.z = math.floor(pos.z + 0.5)
 			update.pos = true
 		end
 
@@ -250,14 +241,15 @@ function boost_cart.cart:on_step(dtime)
 			-- Try to make it similar to the original carts mod
 			acc = acc + (speed_mod * 10)
 		else
-			acc = acc - 0.4
 			-- Handbrake
 			if ctrl and ctrl.down then
-				acc = acc - 1.2
+				acc = acc - 1.6
+			else
+				acc = acc - 0.4
 			end
 		end
 
-		if self.old_dir.y == 0 and not self.punched then
+		if self.old_dir.y ~= 1 and not self.punched then
 			-- Stop the cart swing between two rail parts (handbrake)
 			if vector.equals(vector.multiply(self.old_dir, -1), dir) then
 				vel = {x=0, y=0, z=0}
