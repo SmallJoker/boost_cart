@@ -1,21 +1,10 @@
-minetest.register_node(":default:rail", {
+boost_cart:register_rail(":default:rail", {
 	description = "Rail",
-	drawtype = "raillike",
 	tiles = {
 		"default_rail.png", "default_rail_curved.png",
 		"default_rail_t_junction.png", "default_rail_crossing.png"
 	},
-	inventory_image = "default_rail.png",
-	wield_image = "default_rail.png",
-	paramtype = "light",
-	sunlight_propagates = true,
-	is_ground_content = true,
-	walkable = false,
-	selection_box = {
-		type = "fixed",
-		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
-	},
-	groups = boost_cart:get_rail_groups(),
+	groups = boost_cart:get_rail_groups()
 })
 
 if minetest.get_modpath("moreores") then
@@ -28,7 +17,7 @@ else
 			"carts_rail_cp.png", "carts_rail_curved_cp.png",
 			"carts_rail_t_junction_cp.png", "carts_rail_crossing_cp.png"
 		},
-		groups = boost_cart:get_rail_groups(),
+		groups = boost_cart:get_rail_groups()
 	})
 
 	minetest.register_craft({
@@ -62,7 +51,6 @@ boost_cart:register_rail(":carts:powerrail", {
 			action_on = function(pos, node)
 				boost_cart:boost_rail(pos, 0.5)
 			end,
-
 			action_off = function(pos, node)
 				minetest.get_meta(pos):set_string("cart_acceleration", "0")
 			end,
@@ -98,7 +86,6 @@ boost_cart:register_rail(":carts:brakerail", {
 			action_on = function(pos, node)
 				minetest.get_meta(pos):set_string("cart_acceleration", "-0.3")
 			end,
-
 			action_off = function(pos, node)
 				minetest.get_meta(pos):set_string("cart_acceleration", "0")
 			end,
@@ -134,7 +121,6 @@ boost_cart:register_rail("boost_cart:startstoprail", {
 			action_on = function(pos, node)
 				boost_cart:boost_rail(pos, 0.5)
 			end,
-
 			action_off = function(pos, node)
 				minetest.get_meta(pos):set_string("cart_acceleration", "halt")
 			end,
