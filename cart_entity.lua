@@ -143,7 +143,6 @@ end
 
 function cart_entity:on_step(dtime)
 	local vel = self.object:getvelocity()
-	local update = {}
 	if self.punched then
 		vel = vector.add(vel, self.velocity)
 		self.object:setvelocity(vel)
@@ -153,6 +152,7 @@ function cart_entity:on_step(dtime)
 	end
 
 	local pos = self.object:getpos()
+	local update = {}
 
 	if self.old_pos and not self.punched then
 		local flo_pos = vector.round(pos)
@@ -175,9 +175,8 @@ function cart_entity:on_step(dtime)
 
 	if self.old_pos then
 		-- Detection for "skipping" nodes
-		local expected_pos = vector.add(self.old_pos, self.old_dir)
 		local found_path = boost_cart:pathfinder(
-			pos, expected_pos, self.old_dir, ctrl, self.old_switch, self.railtype
+			pos, self.old_pos, self.old_dir, ctrl, self.old_switch, self.railtype
 		)
 
 		if not found_path then
@@ -258,7 +257,7 @@ function cart_entity:on_step(dtime)
 				acc = -0.4
 			end
 		end
-		
+
 		-- Slow down or speed up, depending on Y direction
 		if acc then
 			acc = acc + dir.y * -2.5
@@ -344,7 +343,6 @@ function cart_entity:on_step(dtime)
 	if update.pos then
 		self.object:setpos(pos)
 	end
-	update = nil
 end
 
 minetest.register_entity(":carts:cart", cart_entity)
