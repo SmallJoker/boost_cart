@@ -26,7 +26,7 @@ end
 boost_cart:register_rail("boost_cart:detectorrail", {
 	description = "Detector rail",
 	tiles = {
-		"carts_rail_dtc.png", "carts_rail_curved_dtc.png",
+		"carts_rail_straight_dtc.png", "carts_rail_curved_dtc.png",
 		"carts_rail_t_junction_dtc.png", "carts_rail_crossing_dtc.png"
 	},
 	groups = boost_cart:get_rail_groups({detector_rail = 1}),
@@ -37,7 +37,7 @@ boost_cart:register_rail("boost_cart:detectorrail", {
 boost_cart:register_rail("boost_cart:detectorrail_on", {
 	description = "Detector rail ON (you hacker you)",
 	tiles = {
-		"carts_rail_dtc_on.png", "carts_rail_curved_dtc_on.png",
+		"carts_rail_straight_dtc_on.png", "carts_rail_curved_dtc_on.png",
 		"carts_rail_t_junction_dtc_on.png", "carts_rail_crossing_dtc_on.png"
 	},
 	groups = boost_cart:get_rail_groups({

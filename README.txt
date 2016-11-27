@@ -22,15 +22,8 @@ CC-0, if not specified otherwise below
 
  Authors
 ---------
-Hawk777
-	carts_rail_ss.png
-	carts_rail_*_ss.png
-
-hexafraction
-	carts_rail_brk.png
-	carts_rail_*_brk.png
-	carts_rail_pwr.png
-	carts_rail_*_pwr.png
+Various authors
+	carts_rail_*.png
 
 kddekadenz
 	cart_bottom.png
@@ -40,12 +33,6 @@ kddekadenz
 klankbeeld (CC-BY 3.0)
 	http://freesound.org/people/klankbeeld/sounds/174042/
 	cart_rail.*.ogg
-
-numberZero
-	carts_rail_dtc.png
-	carts_rail_dtc_on.png
-	carts_rail_*_dtc.png
-	carts_rail_*_dtc_on.png
 
 Zeg9
 	cart.x

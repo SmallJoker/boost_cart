@@ -197,7 +197,7 @@ function boost_cart:register_rail(name, def)
 		drawtype = "raillike",
 		paramtype = "light",
 		sunlight_propagates = true,
-		is_ground_content = true,
+		is_ground_content = false,
 		walkable = false,
 		selection_box = {
 			type = "fixed",
