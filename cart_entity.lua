@@ -37,6 +37,12 @@ local cart_entity = {
 	attached_items = {}
 }
 
+-- Model and textures
+if boost_cart.mtg_compat then
+	cart_entity.mesh = "carts_cart.b3d"
+	cart_entity.textures = {"carts_cart.png"}
+end
+
 function cart_entity:on_rightclick(clicker)
 	if not clicker or not clicker:is_player() then
 		return
@@ -109,8 +115,9 @@ function cart_entity:on_punch(puncher, time_from_last_punch, tool_capabilities, 
 
 		local leftover = puncher:get_inventory():add_item("main", "carts:cart")
 		if not leftover:is_empty() then
-			minetest.add_item(self.object:getpos(), leftover)
+			minetest.add_item(pos, leftover)
 		end
+
 		self.object:remove()
 		return
 	end
@@ -346,33 +353,41 @@ function cart_entity:on_step(dtime)
 end
 
 minetest.register_entity(":carts:cart", cart_entity)
-minetest.register_craftitem(":carts:cart", {
-	description = "Cart (Sneak+Click to pick up)",
-	inventory_image = minetest.inventorycube("cart_top.png", "cart_side.png", "cart_side.png"),
-	wield_image = "cart_side.png",
-	on_place = function(itemstack, placer, pointed_thing)
-		if not pointed_thing.type == "node" then
-			return
-		end
-		if boost_cart:is_rail(pointed_thing.under) then
-			minetest.add_entity(pointed_thing.under, "carts:cart")
-		elseif boost_cart:is_rail(pointed_thing.above) then
-			minetest.add_entity(pointed_thing.above, "carts:cart")
-		else
-			return
-		end
 
-		if not minetest.setting_getbool("creative_mode") then
-			itemstack:take_item()
-		end
-		return itemstack
-	end,
-})
+-- Register item to place the entity
+if not boost_cart.mtg_compat then
+	minetest.register_craftitem(":carts:cart", {
+		description = "Cart (Sneak+Click to pick up)",
+		inventory_image = minetest.inventorycube(
+			"cart_top.png",
+			"cart_side.png",
+			"cart_side.png"
+		),
+		wield_image = "cart_side.png",
+		on_place = function(itemstack, placer, pointed_thing)
+			if not pointed_thing.type == "node" then
+				return
+			end
+			if boost_cart:is_rail(pointed_thing.under) then
+				minetest.add_entity(pointed_thing.under, "carts:cart")
+			elseif boost_cart:is_rail(pointed_thing.above) then
+				minetest.add_entity(pointed_thing.above, "carts:cart")
+			else
+				return
+			end
 
-minetest.register_craft({
-	output = "carts:cart",
-	recipe = {
-		{"default:steel_ingot", "", "default:steel_ingot"},
-		{"default:steel_ingot", "default:steel_ingot", "default:steel_ingot"},
-	},
-})
+			if not minetest.setting_getbool("creative_mode") then
+				itemstack:take_item()
+			end
+			return itemstack
+		end,
+	})
+
+	minetest.register_craft({
+		output = "carts:cart",
+		recipe = {
+			{"default:steel_ingot", "", "default:steel_ingot"},
+			{"default:steel_ingot", "default:steel_ingot", "default:steel_ingot"},
+		},
+	})
+end
