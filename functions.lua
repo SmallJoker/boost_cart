@@ -192,8 +192,8 @@ function boost_cart:boost_rail(pos, amount)
 	end
 end
 
-function boost_cart:register_rail(name, def)
-	local def_default = {
+function boost_cart:register_rail(name, def_overwrite)
+	local def = {
 		drawtype = "raillike",
 		paramtype = "light",
 		sunlight_propagates = true,
@@ -204,7 +204,7 @@ function boost_cart:register_rail(name, def)
 			fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
 		}
 	}
-	for k, v in pairs(def_default) do
+	for k, v in pairs(def_overwrite) do
 		def[k] = v
 	end
 	if not def.inventory_image then
