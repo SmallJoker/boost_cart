@@ -238,7 +238,6 @@ function cart_entity:on_step(dtime)
 			pos = vector.round(pos)
 			update.pos = true
 			update.vel = true
-			mod_found = true
 		end
 		if acc == nil then
 			-- Meta speed modifier
@@ -266,11 +265,7 @@ function cart_entity:on_step(dtime)
 		end
 
 		-- Slow down or speed up, depending on Y direction
-		if acc then
-			acc = acc + dir.y * -2.5
-		else
-			acc = 0
-		end
+		acc = acc + dir.y * -2
 
 		if self.old_dir.y ~= 1 and not self.punched then
 			-- Stop the cart swing between two rail parts (handbrake)
