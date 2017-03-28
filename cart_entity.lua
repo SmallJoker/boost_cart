@@ -264,8 +264,12 @@ function cart_entity:on_step(dtime)
 			end
 		end
 
-		-- Slow down or speed up, depending on Y direction
-		acc = acc + dir.y * -2
+		if acc then
+			-- Slow down or speed up, depending on Y direction
+			acc = acc + dir.y * -2
+		else
+			acc = 0
+		end
 
 		if self.old_dir.y ~= 1 and not self.punched then
 			-- Stop the cart swing between two rail parts (handbrake)
