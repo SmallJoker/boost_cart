@@ -1,4 +1,12 @@
-boost_cart:register_rail(":default:rail", {
+-- Common rail registrations
+
+local regular_rail_itemname = "default:rail"
+if minetest.registered_nodes["carts:rail"] then
+	-- MTG Compatibility
+	regular_rail_itemname = "carts:rail"
+end
+
+boost_cart:register_rail(":"..regular_rail_itemname, {
 	description = "Rail",
 	tiles = {
 		"carts_rail_straight.png", "carts_rail_curved.png",
