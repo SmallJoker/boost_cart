@@ -7,7 +7,7 @@ Target: Run smoothly as possible even on laggy server
 
  Features
 ----------
-- A fast cart for your railway or roller coaster (up to 10 m/s!)
+- A fast cart for your railway or roller coaster!
 - Boost and brake rails
 - By mesecons controlled Start-Stop rails
 - Detector rails that send a mesecons signal when the cart drives over them
