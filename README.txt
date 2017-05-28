@@ -19,7 +19,6 @@ Target: Run smoothly as possible even on laggy server
 ------------------------
 Except for specific works which have other conditions listed in the Authors section,
 creators reserve no copyright or other rights to this work.
-This work, with specific exception of some parts, is in the public domain.
 
 
  Authors
