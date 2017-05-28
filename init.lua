@@ -9,6 +9,7 @@ boost_cart.punch_speed_max = 7
 
 
 if not boost_cart.modpath then
+	-- For Minetest 0.4.12 and older that don't look at the "mod.conf" file
 	error("\nWrong mod directory name! Please change it to 'boost_cart'.\n" ..
 			"See also: http://dev.minetest.net/Installing_Mods")
 end
