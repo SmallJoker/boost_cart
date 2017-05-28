@@ -106,7 +106,7 @@ minetest.register_craft({
 	}
 })
 
-boost_cart:register_rail("boost_cart:startstoprail", {
+boost_cart:register_rail(":boost_cart:startstoprail", {
 	description = "Start-stop rail",
 	tiles = {
 		"carts_rail_straight_ss.png", "carts_rail_curved_ss.png",
@@ -132,6 +132,6 @@ boost_cart:register_rail("boost_cart:startstoprail", {
 
 minetest.register_craft({
 	type = "shapeless",
-	output = "boost_cart:startstoprail 2",
+	output = ":boost_cart:startstoprail 2",
 	recipe = {"carts:powerrail", "carts:brakerail"},
 })
