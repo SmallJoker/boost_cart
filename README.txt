@@ -15,9 +15,11 @@ Target: Run smoothly as possible even on laggy server
 - Handbrake with the 'back' key
 
 
- License for everything
+ Copying / Copyright
 ------------------------
-CC-0, if not specified otherwise below
+Except for specific works which have other conditions listed in the Authors section,
+creators reserve no copyright or other rights to this work.
+This work, with specific exception of some parts, is in the public domain.
 
 
  Authors
