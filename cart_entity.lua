@@ -83,7 +83,8 @@ end
 
 function cart_entity:on_punch(puncher, time_from_last_punch, tool_capabilities, direction)
 	local pos = self.object:getpos()
-	if not self.railtype then
+	local vel = self.object:getvelocity()
+	if not self.railtype or vector.equals(vel, {x=0, y=0, z=0}) then
 		local node = minetest.get_node(pos).name
 		self.railtype = minetest.get_item_group(node, "connect_to_raillike")
 	end
@@ -122,7 +123,7 @@ function cart_entity:on_punch(puncher, time_from_last_punch, tool_capabilities, 
 		return
 	end
 
-	local vel = self.object:getvelocity()
+	-- Driver punches to accelerate the cart
 	if puncher:get_player_name() == self.driver then
 		if math.abs(vel.x + vel.z) > boost_cart.punch_speed_max then
 			return
