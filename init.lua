@@ -16,13 +16,6 @@ boost_cart.speed_max = tonumber(setting_getter("boost_cart.speed_max")) or 10
 -- Set to -1 to disable punching the cart from inside
 boost_cart.punch_speed_max = tonumber(setting_getter("boost_cart.punch_speed_max")) or 7
 
-
-if not boost_cart.modpath then
-	-- For Minetest 0.4.12 and older that don't look at the "mod.conf" file
-	error("\nWrong mod directory name! Please change it to 'boost_cart'.\n" ..
-			"See also: http://dev.minetest.net/Installing_Mods")
-end
-
 -- Support for non-default games
 if not default.player_attached then
 	default.player_attached = {}
