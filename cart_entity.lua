@@ -376,7 +376,7 @@ if not boost_cart.mtg_compat then
 				return
 			end
 
-			if not minetest.setting_getbool("creative_mode") then
+			if not minetest.settings:get_bool("creative_mode") then
 				itemstack:take_item()
 			end
 			return itemstack
