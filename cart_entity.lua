@@ -160,9 +160,11 @@ function cart_entity:on_step(dtime)
 	end
 
 	local pos = self.object:get_pos()
+	local cart_dir = boost_cart:velocity_to_dir(vel)
 	local update = {}
 
-	if self.old_pos and not self.punched then
+	if self.old_pos and not self.punched
+			and vector.equals(cart_dir, self.old_dir) then
 		local flo_pos = vector.round(pos)
 		local flo_old = vector.round(self.old_pos)
 		if vector.equals(flo_pos, flo_old) then
@@ -181,7 +183,7 @@ function cart_entity:on_step(dtime)
 		end
 	end
 
-	local cart_dir = boost_cart:velocity_to_dir(vel)
+	local stop_wiggle = false
 	if self.old_pos and vector.equals(cart_dir, self.old_dir) then
 		-- Detection for "skipping" nodes (perhaps use average dtime?)
 		-- It's sophisticated enough to take the acceleration in account
@@ -200,18 +202,29 @@ function cart_entity:on_step(dtime)
 			update.pos = true
 			cart_dir = new_dir
 		end
+	elseif self.old_pos and cart_dir.y ~= -1 and not self.punched then
+		-- Stop wiggle
+		stop_wiggle = true
 	end
 
 	-- dir:         New moving direction of the cart
-	-- switch_keys: Currently pressed L/R key, used to ignore the key on the next rail node
+	-- switch_keys: Currently pressed L(1) or R(2) key,
+	--              used to ignore the key on the next rail node
 	local dir, switch_keys = boost_cart:get_rail_direction(
 		pos, cart_dir, ctrl, self.old_switch, self.railtype
 	)
 
 	local new_acc = {x=0, y=0, z=0}
-	if vector.equals(dir, {x=0, y=0, z=0}) then
+	if stop_wiggle or vector.equals(dir, {x=0, y=0, z=0}) then
 		vel = {x=0, y=0, z=0}
-		pos = vector.round(pos)
+		local pos_r = vector.round(pos)
+		if not boost_cart:is_rail(pos_r, self.railtype) then
+			pos = self.old_pos
+		elseif not stop_wiggle then
+			pos = pos_r
+		else
+			pos.y = math.floor(pos.y + 0.5)
+		end
 		update.pos = true
 		update.vel = true
 	else
@@ -278,20 +291,6 @@ function cart_entity:on_step(dtime)
 			acc = 0
 		end
 
-		if self.old_dir.y ~= 1 and not self.punched then
-			-- Stop the cart swing between two rail parts (handbrake)
-			if vector.equals(vector.multiply(self.old_dir, -1), dir) then
-				vel = {x=0, y=0, z=0}
-				acc = 0
-				if self.old_pos then
-					pos = vector.new(self.old_pos)
-					update.pos = true
-				end
-				dir = vector.new(self.old_dir)
-				update.vel = true
-			end
-		end
-
 		new_acc = vector.multiply(dir, acc)
 	end
 	boost_cart.on_rail_step(self, vector.round(pos))
@@ -308,7 +307,7 @@ function cart_entity:on_step(dtime)
 
 	self.object:set_acceleration(new_acc)
 	self.old_pos = vector.round(pos)
-	if not vector.equals(dir, {x=0, y=0, z=0}) then
+	if not vector.equals(dir, {x=0, y=0, z=0}) and not stop_wiggle then
 		self.old_dir = dir
 	end
 	self.old_switch = switch_keys
