@@ -160,33 +160,37 @@ function boost_cart:get_rail_direction(pos_, dir, ctrl, old_switch, railtype)
 	return {x=0, y=0, z=0}
 end
 
-function boost_cart:pathfinder(pos_, old_pos, old_dir, ctrl, pf_switch, railtype)
-	if vector.equals(old_pos, pos_) then
-		return true
-	end
+function boost_cart:pathfinder(pos_, old_pos, old_dir, distance, ctrl,
+		pf_switch, railtype)
 
 	local pos = vector.round(pos_)
+	if vector.equals(old_pos, pos) then
+		return
+	end
+
 	local pf_pos = vector.round(old_pos)
 	local pf_dir = vector.new(old_dir)
+	distance = math.min(boost_cart.path_distance_max,
+		math.floor(distance + 1))
 
-	for i = 1, 3 do
+	for i = 1, distance do
 		pf_dir, pf_switch = boost_cart:get_rail_direction(
 			pf_pos, pf_dir, ctrl, pf_switch, railtype)
 
 		if vector.equals(pf_dir, {x=0, y=0, z=0}) then
 			-- No way forwards
-			return false
+			return pf_pos, pf_dir
 		end
 
 		pf_pos = vector.add(pf_pos, pf_dir)
 
 		if vector.equals(pf_pos, pos) then
 			-- Success! Cart moved on correctly
-			return true
+			return
 		end
 	end
-	-- Cart not found
-	return false
+	-- Not found. Put cart to predicted position
+	return pf_pos, pf_dir
 end
 
 function boost_cart:boost_rail(pos, amount)

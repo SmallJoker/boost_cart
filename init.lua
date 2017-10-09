@@ -8,11 +8,17 @@ if not minetest.settings then
 		.. " (Version <= 0.4.15)")
 end
 
+local function getNum(setting)
+	return tonumber(minetest.settings:get(setting))
+end
+
 -- Maximal speed of the cart in m/s
-boost_cart.speed_max = tonumber(minetest.settings:get("boost_cart.speed_max")) or 10
+boost_cart.speed_max = getNum("boost_cart.speed_max") or 10
 -- Set to -1 to disable punching the cart from inside
-boost_cart.punch_speed_max =
-	tonumber(minetest.settings:get("boost_cart.punch_speed_max")) or 7
+boost_cart.punch_speed_max = getNum("boost_cart.punch_speed_max") or 7
+-- Maximal distance for the path correction (for dtime peaks)
+boost_cart.path_distance_max = 3
+
 
 -- Support for non-default games
 if not default.player_attached then

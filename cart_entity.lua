@@ -82,8 +82,8 @@ function cart_entity:get_staticdata()
 end
 
 function cart_entity:on_punch(puncher, time_from_last_punch, tool_capabilities, direction)
-	local pos = self.object:getpos()
-	local vel = self.object:getvelocity()
+	local pos = self.object:get_pos()
+	local vel = self.object:get_velocity()
 	if not self.railtype or vector.equals(vel, {x=0, y=0, z=0}) then
 		local node = minetest.get_node(pos).name
 		self.railtype = minetest.get_item_group(node, "connect_to_raillike")
@@ -103,7 +103,7 @@ function cart_entity:on_punch(puncher, time_from_last_punch, tool_capabilities, 
 		-- Pick up cart: Drop all attachments
 		if self.driver then
 			if self.old_pos then
-				self.object:setpos(self.old_pos)
+				self.object:set_pos(self.old_pos)
 			end
 			local player = minetest.get_player_by_name(self.driver)
 			boost_cart:manage_attachment(player, nil)
@@ -150,16 +150,16 @@ function cart_entity:on_punch(puncher, time_from_last_punch, tool_capabilities, 
 end
 
 function cart_entity:on_step(dtime)
-	local vel = self.object:getvelocity()
+	local vel = self.object:get_velocity()
 	if self.punched then
 		vel = vector.add(vel, self.velocity)
-		self.object:setvelocity(vel)
+		self.object:set_velocity(vel)
 		self.old_dir.y = 0
 	elseif vector.equals(vel, {x=0, y=0, z=0}) then
 		return
 	end
 
-	local pos = self.object:getpos()
+	local pos = self.object:get_pos()
 	local update = {}
 
 	if self.old_pos and not self.punched then
@@ -181,20 +181,26 @@ function cart_entity:on_step(dtime)
 		end
 	end
 
-	if self.old_pos then
-		-- Detection for "skipping" nodes
-		local found_path = boost_cart:pathfinder(
-			pos, self.old_pos, self.old_dir, ctrl, self.old_switch, self.railtype
+	local cart_dir = boost_cart:velocity_to_dir(vel)
+	if self.old_pos and vector.equals(cart_dir, self.old_dir) then
+		-- Detection for "skipping" nodes (perhaps use average dtime?)
+		-- It's sophisticated enough to take the acceleration in account
+		local acc = self.object:get_acceleration()
+		local distance = dtime * (vector.length(vel) +
+			0.5 * dtime * vector.length(acc))
+
+		local new_pos, new_dir = boost_cart:pathfinder(
+			pos, self.old_pos, self.old_dir, distance, ctrl,
+			self.old_switch, self.railtype
 		)
 
-		if not found_path then
-			-- No rail found: reset back to the expected position
-			pos = vector.new(self.old_pos)
+		if new_pos then
+			-- No rail found: set to the expected position
+			pos = new_pos
 			update.pos = true
+			cart_dir = new_dir
 		end
 	end
-
-	local cart_dir = boost_cart:velocity_to_dir(vel)
 
 	-- dir:         New moving direction of the cart
 	-- switch_keys: Currently pressed L/R key, used to ignore the key on the next rail node
@@ -211,7 +217,7 @@ function cart_entity:on_step(dtime)
 	else
 		-- Direction change detected
 		if not vector.equals(dir, self.old_dir) then
-			vel = vector.multiply(dir, math.abs(vel.x + vel.z))
+			vel = vector.multiply(dir, vector.length(vel))
 			update.vel = true
 			if dir.y ~= self.old_dir.y then
 				pos = vector.round(pos)
@@ -300,8 +306,8 @@ function cart_entity:on_step(dtime)
 		end
 	end
 
-	self.object:setacceleration(new_acc)
-	self.old_pos = pos
+	self.object:set_acceleration(new_acc)
+	self.old_pos = vector.round(pos)
 	if not vector.equals(dir, {x=0, y=0, z=0}) then
 		self.old_dir = dir
 	end
@@ -336,7 +342,7 @@ function cart_entity:on_step(dtime)
 	elseif self.old_dir.z < 0 then
 		yaw = 1
 	end
-	self.object:setyaw(yaw * math.pi)
+	self.object:set_yaw(yaw * math.pi)
 
 	local anim = {x=0, y=0}
 	if dir.y == -1 then
@@ -346,9 +352,9 @@ function cart_entity:on_step(dtime)
 	end
 	self.object:set_animation(anim, 1, 0)
 
-	self.object:setvelocity(vel)
+	self.object:set_velocity(vel)
 	if update.pos then
-		self.object:setpos(pos)
+		self.object:set_pos(pos)
 	end
 end
 
