@@ -1,17 +1,17 @@
 
 local HAVE_MESECONS_ENABLED = minetest.global_exists("mesecon")
 
-function boost_cart:on_rail_step(pos)
+function boost_cart:on_rail_step(entity, pos, distance)
 	-- Play rail sound
-	if self.sound_counter <= 0 then
+	if entity.sound_counter <= 0 then
 		minetest.sound_play("cart_rail", {
 			pos = pos,
 			max_hear_distance = 40,
 			gain = 0.5
 		})
-		self.sound_counter = math.random(4, 15)
+		entity.sound_counter = math.random(4, 15)
 	end
-	self.sound_counter = self.sound_counter - 1
+	entity.sound_counter = entity.sound_counter - distance
 
 	if HAVE_MESECONS_ENABLED then
 		boost_cart:signal_detector_rail(pos)
@@ -65,7 +65,7 @@ function cart_entity:on_activate(staticdata, dtime_s)
 		return
 	end
 	local data = minetest.deserialize(staticdata)
-	if not data or type(data) ~= "table" then
+	if type(data) ~= "table" then
 		return
 	end
 	self.railtype = data.railtype
@@ -149,6 +149,7 @@ function cart_entity:on_punch(puncher, time_from_last_punch, tool_capabilities, 
 	self.punched = true
 end
 
+local v3_len = vector.length
 function cart_entity:on_step(dtime)
 	local vel = self.object:get_velocity()
 	if self.punched then
@@ -161,10 +162,10 @@ function cart_entity:on_step(dtime)
 
 	local pos = self.object:get_pos()
 	local cart_dir = boost_cart:velocity_to_dir(vel)
+	local same_dir = vector.equals(cart_dir, self.old_dir)
 	local update = {}
 
-	if self.old_pos and not self.punched
-			and vector.equals(cart_dir, self.old_dir) then
+	if self.old_pos and not self.punched and same_dir then
 		local flo_pos = vector.round(pos)
 		local flo_old = vector.round(self.old_pos)
 		if vector.equals(flo_pos, flo_old) then
@@ -174,6 +175,7 @@ function cart_entity:on_step(dtime)
 	end
 
 	local ctrl, player
+	local distance = 1
 
 	-- Get player controls
 	if self.driver then
@@ -184,12 +186,11 @@ function cart_entity:on_step(dtime)
 	end
 
 	local stop_wiggle = false
-	if self.old_pos and vector.equals(cart_dir, self.old_dir) then
+	if self.old_pos and same_dir then
 		-- Detection for "skipping" nodes (perhaps use average dtime?)
 		-- It's sophisticated enough to take the acceleration in account
 		local acc = self.object:get_acceleration()
-		local distance = dtime * (vector.length(vel) +
-			0.5 * dtime * vector.length(acc))
+		distance = dtime * (v3_len(vel) + 0.5 * dtime * v3_len(acc))
 
 		local new_pos, new_dir = boost_cart:pathfinder(
 			pos, self.old_pos, self.old_dir, distance, ctrl,
@@ -230,7 +231,7 @@ function cart_entity:on_step(dtime)
 	else
 		-- Direction change detected
 		if not vector.equals(dir, self.old_dir) then
-			vel = vector.multiply(dir, vector.length(vel))
+			vel = vector.multiply(dir, v3_len(vel))
 			update.vel = true
 			if dir.y ~= self.old_dir.y then
 				pos = vector.round(pos)
@@ -293,7 +294,6 @@ function cart_entity:on_step(dtime)
 
 		new_acc = vector.multiply(dir, acc)
 	end
-	boost_cart.on_rail_step(self, vector.round(pos))
 
 	-- Limits
 	local max_vel = boost_cart.speed_max
@@ -312,6 +312,7 @@ function cart_entity:on_step(dtime)
 	end
 	self.old_switch = switch_keys
 
+	boost_cart:on_rail_step(self, self.old_pos, distance)
 
 	if self.punched then
 		-- Collect dropped items
