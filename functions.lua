@@ -177,7 +177,7 @@ function boost_cart:pathfinder(pos_, old_pos, old_dir, distance, ctrl,
 
 	for i = 1, distance do
 		pf_dir, pf_switch = self:get_rail_direction(
-			pf_pos, pf_dir, ctrl, pf_switch, railtype)
+			pf_pos, pf_dir, ctrl, pf_switch or 0, railtype)
 
 		if vector.equals(pf_dir, {x=0, y=0, z=0}) then
 			-- No way forwards
