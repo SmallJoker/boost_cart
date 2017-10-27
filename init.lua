@@ -25,6 +25,10 @@ if not default.player_attached then
 	default.player_attached = {}
 end
 
+minetest.after(1, function()
+	boost_cart.old_player_model = type(player_api) ~= "table"
+end)
+
 dofile(boost_cart.modpath.."/functions.lua")
 dofile(boost_cart.modpath.."/rails.lua")
 
