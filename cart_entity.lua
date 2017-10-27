@@ -359,12 +359,12 @@ function cart_entity:on_step(dtime)
 			-- TODO: Find a better way to calculate this
 			if boost_cart.old_player_model then
 				feet.y = 6 + 1.5
-				feet.z = (dir.x - dir.z) * 7
+				feet.z = -dir.y * 7
 			else
 				feet.y = -4.2 + 3
-				feet.z = dir.x - dir.z
+				feet.z = -dir.y
 			end
-			eye.z = eye.z - dir.y * 10
+			eye.z = -dir.y * 10
 		end
 		player:set_attach(self.object, "", feet,
 			{x=dir.y * -45, y=0, z=0})
