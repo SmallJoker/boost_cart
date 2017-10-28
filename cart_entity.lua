@@ -307,6 +307,7 @@ function cart_entity:on_step(dtime)
 
 	self.object:set_acceleration(new_acc)
 	self.old_pos = vector.round(pos)
+	local old_y_dir = self.old_dir.y
 	if not vector.equals(dir, {x=0, y=0, z=0}) and not stop_wiggle then
 		self.old_dir = dir
 	end
@@ -351,7 +352,7 @@ function cart_entity:on_step(dtime)
 		anim = {x=2, y=2}
 	end
 	self.object:set_animation(anim, 1, 0)
-	if player then
+	if player and dir.y ~= old_y_dir then
 		local feet = {x=0, y=0, z=0}
 		local eye = {x=0, y=-4, z=0}
 		feet.y = boost_cart.old_player_model and 6 or -4.2
