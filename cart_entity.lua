@@ -214,6 +214,7 @@ function cart_entity:on_step(dtime)
 	local dir, switch_keys = boost_cart:get_rail_direction(
 		pos, cart_dir, ctrl, self.old_switch, self.railtype
 	)
+	local dir_changed = not vector.equals(dir, self.old_dir)
 
 	local new_acc = {x=0, y=0, z=0}
 	if stop_wiggle or vector.equals(dir, {x=0, y=0, z=0}) then
@@ -230,7 +231,7 @@ function cart_entity:on_step(dtime)
 		update.vel = true
 	else
 		-- Direction change detected
-		if not vector.equals(dir, self.old_dir) then
+		if dir_changed then
 			vel = vector.multiply(dir, v3_len(vel))
 			update.vel = true
 			if dir.y ~= self.old_dir.y then
@@ -352,29 +353,37 @@ function cart_entity:on_step(dtime)
 		anim = {x=2, y=2}
 	end
 	self.object:set_animation(anim, 1, 0)
+
+	-- Change player model rotation, depending on the Y direction
 	if player and dir.y ~= old_y_dir then
 		local feet = {x=0, y=0, z=0}
 		local eye = {x=0, y=-4, z=0}
-		feet.y = boost_cart.old_player_model and 6 or -4.2
+		feet.y = boost_cart.old_player_model and 6 or -4
 		if dir.y ~= 0 then
 			-- TODO: Find a better way to calculate this
 			if boost_cart.old_player_model then
-				feet.y = 6 + 1.5
-				feet.z = -dir.y * 7
+				feet.y = feet.y + 2
+				feet.z = -dir.y * 6
 			else
-				feet.y = -4.2 + 3
-				feet.z = -dir.y
+				feet.y = feet.y + 4
+				feet.z = -dir.y * 2
 			end
-			eye.z = -dir.y * 10
+			eye.z = -dir.y * 8
 		end
 		player:set_attach(self.object, "", feet,
-			{x=dir.y * -45, y=0, z=0})
+			{x=dir.y * -30, y=0, z=0})
 		player:set_eye_offset(eye, eye)
 	end
 
-	self.object:set_velocity(vel)
+	if update.vel then
+		self.object:set_velocity(vel)
+	end
 	if update.pos then
-		self.object:set_pos(pos)
+		if dir_changed then
+			self.object:set_pos(pos)
+		else
+			self.object:move_to(pos)
+		end
 	end
 end
 

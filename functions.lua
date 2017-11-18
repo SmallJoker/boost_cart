@@ -18,7 +18,7 @@ function boost_cart:manage_attachment(player, obj)
 	default.player_attached[player_name] = status
 
 	if status then
-		local y_pos = self.old_player_model and 6 or -4.2
+		local y_pos = self.old_player_model and 6 or -4
 		player:set_attach(obj, "", {x=0, y=y_pos, z=0}, {x=0, y=0, z=0})
 		player:set_eye_offset({x=0, y=-4, z=0},{x=0, y=-4, z=0})
 	else
