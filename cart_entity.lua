@@ -203,7 +203,7 @@ function cart_entity:on_step(dtime)
 			update.pos = true
 			cart_dir = new_dir
 		end
-	elseif self.old_pos and cart_dir.y ~= -1 and not self.punched then
+	elseif self.old_pos and self.old_dir.y ~= 1 and not self.punched then
 		-- Stop wiggle
 		stop_wiggle = true
 	end
@@ -277,18 +277,18 @@ function cart_entity:on_step(dtime)
 				acc = railparam.acceleration
 			end
 		end
-		if acc == nil then
+		if acc ~= false then
 			-- Handbrake
 			if ctrl and ctrl.down then
-				acc = -2
-			else
+				acc = (acc or 0) - 2
+			elseif acc == nil then
 				acc = -0.4
 			end
 		end
 
 		if acc then
 			-- Slow down or speed up, depending on Y direction
-			acc = acc + dir.y * -2
+			acc = acc + dir.y * -2.1
 		else
 			acc = 0
 		end
@@ -311,6 +311,9 @@ function cart_entity:on_step(dtime)
 	local old_y_dir = self.old_dir.y
 	if not vector.equals(dir, {x=0, y=0, z=0}) and not stop_wiggle then
 		self.old_dir = dir
+	else
+		-- Cart stopped, set the animation to 0
+		self.old_dir.y = 0
 	end
 	self.old_switch = switch_keys
 
@@ -335,13 +338,15 @@ function cart_entity:on_step(dtime)
 	if not (update.vel or update.pos) then
 		return
 	end
+	-- Re-use "dir", localize self.old_dir
+	dir = self.old_dir
 
 	local yaw = 0
-	if self.old_dir.x < 0 then
+	if dir.x < 0 then
 		yaw = 0.5
-	elseif self.old_dir.x > 0 then
+	elseif dir.x > 0 then
 		yaw = 1.5
-	elseif self.old_dir.z < 0 then
+	elseif dir.z < 0 then
 		yaw = 1
 	end
 	self.object:set_yaw(yaw * math.pi)
