@@ -34,7 +34,9 @@ local cart_entity = {
 	old_switch = 0,
 	sound_counter = 0,
 	railtype = nil,
-	attached_items = {}
+	attached_items = {},
+	automatic_face_movement_dir = -90.0,
+	automatic_face_movement_max_rotation_per_sec = 360 * 4,
 }
 
 -- Model and textures
@@ -341,15 +343,17 @@ function cart_entity:on_step(dtime)
 	-- Re-use "dir", localize self.old_dir
 	dir = self.old_dir
 
-	local yaw = 0
-	if dir.x < 0 then
-		yaw = 0.5
-	elseif dir.x > 0 then
-		yaw = 1.5
-	elseif dir.z < 0 then
-		yaw = 1
+	if stop_wiggle then
+		local yaw = 0
+		if dir.x < 0 then
+			yaw = 0.5
+		elseif dir.x > 0 then
+			yaw = 1.5
+		elseif dir.z < 0 then
+			yaw = 1
+		end
+		self.object:set_yaw(yaw * math.pi)
 	end
-	self.object:set_yaw(yaw * math.pi)
 
 	local anim = {x=0, y=0}
 	if dir.y == -1 then
