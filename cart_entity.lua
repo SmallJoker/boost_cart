@@ -232,7 +232,7 @@ function cart_entity:on_step(dtime)
 	else
 		-- Direction change detected
 		if dir_changed then
-			vel = vector.multiply(dir, v3_len(vel))
+			vel = vector.multiply(dir, math.abs(vel.x + vel.z))
 			update.vel = true
 			if dir.y ~= self.old_dir.y then
 				pos = vector.round(pos)
