@@ -220,7 +220,8 @@ function cart_entity:on_step(dtime)
 	if stop_wiggle or vector.equals(dir, {x=0, y=0, z=0}) then
 		vel = {x=0, y=0, z=0}
 		local pos_r = vector.round(pos)
-		if not boost_cart:is_rail(pos_r, self.railtype) then
+		if not boost_cart:is_rail(pos_r, self.railtype)
+				and self.old_pos then
 			pos = self.old_pos
 		elseif not stop_wiggle then
 			pos = pos_r

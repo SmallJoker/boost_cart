@@ -25,8 +25,8 @@ if not default.player_attached then
 	default.player_attached = {}
 end
 
-minetest.after(1, function()
-	boost_cart.old_player_model = type(player_api) ~= "table"
+minetest.after(0.5, function()
+	boost_cart.old_player_model = not minetest.global_exists("player_api")
 end)
 
 dofile(boost_cart.modpath.."/functions.lua")
