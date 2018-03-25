@@ -29,7 +29,7 @@ else
 	})
 
 	minetest.register_craft({
-		output = "carts:copperrail 12",
+		output = "carts:copperrail 18",
 		recipe = {
 			{"default:copper_ingot", "", "default:copper_ingot"},
 			{"default:copper_ingot", "group:stick", "default:copper_ingot"},
@@ -64,7 +64,7 @@ boost_cart:register_rail(":carts:powerrail", {
 })
 
 minetest.register_craft({
-	output = "carts:powerrail 6",
+	output = "carts:powerrail 18",
 	recipe = {
 		{"default:steel_ingot", "default:mese_crystal_fragment", "default:steel_ingot"},
 		{"default:steel_ingot", "group:stick", "default:steel_ingot"},
@@ -98,7 +98,7 @@ boost_cart:register_rail(":carts:brakerail", {
 })
 
 minetest.register_craft({
-	output = "carts:brakerail 6",
+	output = "carts:brakerail 18",
 	recipe = {
 		{"default:steel_ingot", "default:coal_lump", "default:steel_ingot"},
 		{"default:steel_ingot", "group:stick", "default:steel_ingot"},
