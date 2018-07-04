@@ -107,7 +107,7 @@ function boost_cart:get_rail_direction(pos_, dir, ctrl, old_switch, railtype)
 		right.z = -dir.x
 	end
 
-	if ctrl then
+	if ctrl and dir.y == 0 then
 		if old_switch == 1 then
 			left_check = false
 		elseif old_switch == 2 then
