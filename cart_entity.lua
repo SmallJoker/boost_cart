@@ -27,6 +27,7 @@ local cart_entity = {
 	textures = {"cart.png"},
 
 	driver = nil,
+	driver_connected = false,
 	punched = false, -- used to re-send velocity and position
 	velocity = {x=0, y=0, z=0}, -- only used on punch
 	old_dir = {x=1, y=0, z=0}, -- random value to start the cart on punch
@@ -51,7 +52,8 @@ function cart_entity:on_rightclick(clicker)
 	if self.driver and player_name == self.driver then
 		self.driver = nil
 		boost_cart:manage_attachment(clicker, nil)
-	elseif not self.driver then
+		self.driver_connected = true
+	elseif self.driver and self.driver_connected == false then
 		self.driver = player_name
 		boost_cart:manage_attachment(clicker, self.object)
 
@@ -60,10 +62,23 @@ function cart_entity:on_rightclick(clicker)
 			-- when the player is attached, reset to default animation
 			default.player_set_animation(clicker, "stand")
 		end
+	elseif not self.driver then
+		self.driver = player_name
+		boost_cart:manage_attachment(clicker, self.object)
+
+		if default.player_set_animation then
+			default.player_set_animation(clicker, "stand")
+		end
 	end
 end
 
 function cart_entity:on_activate(staticdata, dtime_s)
+	if staticdata and minetest.deserialize(staticdata) and minetest.deserialize(staticdata)["driver"] then
+		local driver = minetest.deserialize(staticdata)["driver"]
+		self.driver = driver
+		boost_cart:manage_attachment(minetest.get_player_by_name(self.driver), self.object)
+	end
+	
 	self.object:set_armor_groups({immortal=1})
 	self.sound_counter = math.random(4, 15)
 
@@ -82,16 +97,10 @@ end
 
 function cart_entity:get_staticdata()
 	return minetest.serialize({
+		driver = self.driver,
 		railtype = self.railtype,
 		old_dir = self.old_dir
 	})
-end
-
--- 0.5.x and later: When the driver leaves
-function cart_entity:on_detach_child(child)
-	if child and child:get_player_name() == self.driver then
-		self.driver = nil
-	end
 end
 
 function cart_entity:on_punch(puncher, time_from_last_punch, tool_capabilities, direction)
@@ -195,6 +204,10 @@ function cart_entity:on_step(dtime)
 		player = minetest.get_player_by_name(self.driver)
 		if player then
 			ctrl = player:get_player_control()
+			boost_cart:manage_attachment(player, self.object)
+			self.driver_connected = true
+		else
+			self.driver_connected = false
 		end
 	end
 
