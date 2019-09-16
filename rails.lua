@@ -182,6 +182,10 @@ boost_cart:register_rail("boost_cart:waitrail", {
 
 minetest.register_on_player_receive_fields(function(player, formname, fields)
 	local player_name = player:get_player_name()
+
+	local pos = boost_cart.player_formspecs[player_name]
+	boost_cart.player_formspecs[player_name] = nil -- Clean up
+
 	if not player_name or formname ~= "boost_cart:waitrail" then
 		return false
 	end
@@ -196,7 +200,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 			return false
 		end
 
-		local meta = minetest.get_meta(boost_cart.player_formspecs[player_name])
+		local meta = minetest.get_meta(pos)
 		meta:set_string("cart_acceleration", "wait:" .. num)
 		meta:set_string("cart_acceleration_backup", "wait:" .. num)
 		meta:set_string("infotext", "Wait time: " .. num .. " seconds.")
