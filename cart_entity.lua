@@ -304,6 +304,12 @@ function cart_entity:on_step(dtime)
 				acc = -0.4
 			end
 		end
+		if ctrl and ctrl.sneak then
+			-- Descend when sneak is pressed
+			boost_cart:manage_attachment(player, nil)
+			player = nil
+			ctrl = nil
+		end
 
 		if acc then
 			-- Slow down or speed up, depending on Y direction
