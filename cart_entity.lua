@@ -273,13 +273,22 @@ function cart_entity:on_step(dtime)
 		acc = nil
 
 		local acc_meta = minetest.get_meta(pos):get_string("cart_acceleration")
-		if acc_meta == "halt" and not self.punched then
+		if (acc_meta == "halt" or acc_meta:sub(1, 5) == "wait:") and not self.punched then
 			-- Stop rail
 			vel = {x=0, y=0, z=0}
 			acc = false
 			pos = vector.round(pos)
 			update.pos = true
 			update.vel = true
+			if acc_meta:sub(1, 5) == "wait:" then
+				local wait_time = tonumber(acc_meta:sub(6))
+				if wait_time then
+					minetest.after(wait_time, function()
+						boost_cart:boost_rail(pos, 0.5)
+						minetest.get_meta(pos):set_string("cart_acceleration", acc_meta)
+					end)
+				end
+			end
 		end
 		if acc == nil then
 			-- Meta speed modifier
